@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>=Военный мир</title>
+  <title>WARS WORLD — Военный мир</title>
   <style>
     :root {
       --bg: #0a0e14;
@@ -131,8 +131,8 @@
     .tag-green { background: var(--green); color: #000; }
     .tag-yellow { background: var(--yellow); color: #000; }
     .tag-purple { background: var(--purple); color: #fff; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
     .pulse { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
     .radio-grid { display: flex; gap: 10px; flex-wrap: wrap; }
     .radio-card {
       flex: 1; min-width: 120px;
@@ -153,21 +153,6 @@
       margin: 8px 0;
       border-radius: 6px;
     }
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100;
-    }
-    .modal {
-      background: var(--panel);
-      border-radius: var(--radius);
-      padding: 25px;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 0 40px rgba(255,0,0,0.3);
-    }
   </style>
 </head>
 <body>
@@ -180,9 +165,9 @@
 <!-- ВЫБОР РОЛИ -->
 <div id="screen-role" class="card">
   <h2>🎯 Выберите роль</h2>
-  <button class="btn btn-red" onclick="setRole('player')">🛡️ Я — Игрок (Страна)</button>
-  <button class="btn btn-blue" onclick="setRole('master')">🎓 Я — Ведущий (Мастер)</button>
-  <button class="btn" style="background:#555" onclick="setRole('screen')">🖥️ Общий экран</button>
+  <button class="btn btn-red" onclick="window.setRole('player')">🛡️ Я — Игрок (Страна)</button>
+  <button class="btn btn-blue" onclick="window.setRole('master')">🎓 Я — Ведущий (Мастер)</button>
+  <button class="btn" style="background:#555" onclick="window.setRole('screen')">🖥️ Общий экран</button>
 </div>
 
 <!-- ВХОД -->
@@ -190,8 +175,8 @@
   <h2>🔑 Подключение</h2>
   <input type="text" id="inp-room" placeholder="Код комнаты (напр. WARS1)" value="WARS1">
   <input type="text" id="inp-name" placeholder="Название страны" class="hidden">
-  <input type="password" id="inp-pwd" placeholder="Пароль Мастера (Ron)" class="hidden">
-  <button class="btn btn-green" onclick="connect()">ВОЙТИ</button>
+  <input type="password" id="inp-pass" placeholder="Пароль ведущего" class="hidden">
+  <button class="btn btn-green" onclick="window.connect()">ВОЙТИ</button>
 </div>
 
 <!-- ИНТЕРФЕЙС ИГРОКА -->
@@ -206,28 +191,28 @@
   </div>
 
   <div id="p-phase-planning" class="hidden">
-    <h3>📋 Фаза планирования — Раунд <span id="p-round">1</span></h3>
+    <h3>📋 Фаза планирования — Раунд <span class="current-round">1</span></h3>
 
     <!-- Скрытый режим -->
     <div id="p-stealth-block" style="margin-bottom:12px;">
-      <button class="btn btn-purple btn-sm" id="btn-stealth" onclick="activateStealth()">🥷 Войти в скрытый режим</button>
+      <button class="btn btn-purple btn-sm" id="btn-stealth" onclick="window.activateStealth()">🥷 Войти в скрытый режим</button>
       <div id="p-stealth-info" class="hidden" style="font-size:0.8rem; color:var(--purple); margin-top:4px;">
         Скрытый режим активен. Осталось раундов: <span id="p-stealth-left">4</span>
       </div>
     </div>
 
-    <!-- Производство (обязательное) -->
-    <label style="font-weight:700;">🏭 Производство (обязательно):</label>
+    <!-- Производство (визуальный выбор фиксированного количества) -->
+    <label style="font-weight:700;">🏭 Производство (выберите тип):</label>
     <div class="radio-grid" id="prod-choices">
-      <div class="radio-card" data-prod="pro" onclick="selectProd('pro')">
+      <div class="radio-card" data-prod="pro" onclick="window.selectProd('pro')">
         <div class="emoji">🛡️</div>
         <div><strong>ПРО</strong></div>
-        <div style="font-size:0.8rem; color:var(--dim);">+<span id="prod-pro-amount">1</span></div>
+        <div style="font-size:1.1rem; color:var(--green); font-weight:bold;">+<span id="prod-pro-amount">1</span></div>
       </div>
-      <div class="radio-card" data-prod="ya" onclick="selectProd('ya')">
+      <div class="radio-card" data-prod="ya" onclick="window.selectProd('ya')">
         <div class="emoji">☢️</div>
         <div><strong>ЯБ</strong></div>
-        <div style="font-size:0.8rem; color:var(--dim);">+<span id="prod-ya-amount">1</span></div>
+        <div style="font-size:1.1rem; color:var(--yellow); font-weight:bold;">+<span id="prod-ya-amount">1</span></div>
       </div>
     </div>
 
@@ -240,19 +225,19 @@
     <input type="range" id="p-ya-count" min="0" max="0" value="0" step="1" oninput="document.getElementById('p-ya-count-val').innerText=this.value">
     <span id="p-ya-count-val" style="font-weight:700; font-size:1.2rem;">0</span>
 
-    <button class="btn btn-red" id="btn-submit" onclick="submitTurn()">✅ ПОДТВЕРДИТЬ ХОД</button>
+    <button class="btn btn-red" id="btn-submit" onclick="window.submitTurn()">✅ ПОДТВЕРДИТЬ ХОД</button>
   </div>
 
   <div id="p-phase-wait" class="hidden">
     <h3 class="pulse">⏳ Ожидание других игроков...</h3>
   </div>
 
-  <!-- Кнопка тайного арсенала -->
-  <button class="btn btn-yellow hidden" id="btn-arsenal" onclick="takeArsenal()" style="margin-top:16px;">
+  <!-- Тайный арсенал -->
+  <button class="btn btn-yellow hidden" id="btn-arsenal" onclick="window.takeArsenal()">
     🚀 Вы знаете о тайном запасе списанного арсенала. Успеть забрать арсенал себе!
   </button>
   <div id="p-arsenal-info" class="hidden" style="margin-top:8px; padding:8px; background:#332b00; border-radius:6px; font-size:0.9rem;">
-    ⚠️ Арсенал получен: +2 ПРО, +5 ЯБ. Эти 5 ЯБ взорвутся в конце 6-го раунда на территории выбранной вами страны.
+    ⚠️ Вы забрали списанный арсенал (+2 ПРО, +5 ЯБ)! В конце 6-го раунда эти нестабильные ракеты взорвутся на территории выбранной вами страны.
   </div>
 </div>
 
@@ -260,60 +245,24 @@
 <div id="ui-master" class="card hidden">
   <h2>🎓 Панель Мастера</h2>
   <p>Комната: <strong id="m-room">-</strong> | Раунд: <strong id="m-round">1</strong> | Фаза: <strong id="m-phase">лобби</strong></p>
-  
-  <div id="m-controls" style="margin-top:10px;">
-    <button class="btn btn-green" id="m-btn-start" onclick="masterStartGame()">🚀 Начать игру</button>
-    <button class="btn btn-blue hidden" id="m-btn-resolve" onclick="masterResolve()">⚔️ Перейти к разрешению ударов</button>
-    <button class="btn btn-orange hidden" id="m-btn-next" onclick="masterNextRound()">⏭️ Следующий раунд</button>
+  <div id="m-controls">
+    <button class="btn btn-green" id="m-btn-start" onclick="window.masterStartGame()">🚀 Начать игру</button>
+    <button class="btn btn-blue hidden" id="m-btn-resolve" onclick="window.masterToResolution()">⚔️ Перейти к разрешению ударов</button>
+    <button class="btn btn-orange hidden" id="m-btn-next" onclick="window.masterNextRound()">⏭️ Следующий раунд</button>
   </div>
-
-  <!-- Панель управления ИИ и Астероидом -->
-  <div id="m-events" class="hidden" style="margin-top: 15px; padding: 12px; background: var(--panel2); border-radius: 8px;">
-    <h3>⚙️ События и Броски раунда</h3>
-    <div id="m-ai-roll-block" class="hidden" style="margin-top: 5px;">
-      <p style="color:var(--yellow)">⚠️ Раунд 5: Самоопределение Безудержного ИИ</p>
-      <select id="m-ai-select-player"></select>
-      <input type="number" id="m-ai-roll-val" placeholder="Значение d20 (1-20)" min="1" max="20">
-      <button class="btn btn-sm btn-yellow" onclick="submitAIRoll()">Записать самоопределение ИИ</button>
-    </div>
-    <div id="m-rebellion-block" class="hidden" style="margin-top: 10px;">
-      <p style="color:var(--red)">🔥 Раунд 4+: Бросок инициативы ИИ (против бунта)</p>
-      <select id="m-reb-select-player"></select>
-      <input type="number" id="m-reb-roll-val" placeholder="Значение d20 (1-20)" min="1" max="20">
-      <button class="btn btn-sm btn-red" onclick="submitRebellionRoll()">Применить бросок против бунта</button>
-    </div>
-  </div>
-
-  <!-- Разрешение ударов -->
   <div id="m-resolution" class="hidden" style="margin-top:14px;">
-    <h3>💥 Очерёдность ударов (по убыванию):</h3>
+    <h3>💥 Очерёдность ударов (по убыванию количества ракет):</h3>
     <div id="m-attack-queue"></div>
     <div id="m-dice-panel" class="hidden" style="margin-top:12px; padding:12px; background:var(--panel2); border-radius:8px;">
-      <h4>🎲 Бросок ПРО</h4>
+      <h4>🎲 Бросок ПРО (Ввод вручную)</h4>
       <p>Атака: <span id="m-dice-attacker"></span> → <span id="m-dice-target"></span></p>
       <p>Боеголовка #<span id="m-dice-wh-num">1</span> | Попытка ПРО #<span id="m-dice-pro-num">1</span></p>
-      <p>Требуемый бросок: <strong id="m-dice-needed">3-20</strong></p>
+      <p>Шанс попадания: <strong id="m-dice-needed">3-20</strong></p>
       <input type="number" id="m-dice-input" placeholder="Результат броска d20 (1-20)" min="1" max="20">
-      <button class="btn btn-sm btn-blue" onclick="resolveDiceRoll()">🎲 Применить бросок</button>
-      <button class="btn btn-sm" style="background:#555;" onclick="skipInterceptor()">⏭️ Пропустить (дать упасть)</button>
+      <button class="btn btn-sm btn-blue" onclick="window.resolveDiceRoll()">🎲 Применить бросок</button>
+      <button class="btn btn-sm" style="background:#555;" onclick="window.skipInterceptor()">⏭️ Пропустить (дать упасть)</button>
     </div>
-    <div id="m-dice-log" style="margin-top:10px; font-size:0.85rem; color: var(--dim)"></div>
-  </div>
-
-  <!-- Управление аудиофайлами (Storage) -->
-  <div id="m-audio-uploader" style="margin-top:20px; padding:12px; background: var(--panel2); border-radius: 8px;">
-    <h3>🎵 Загрузка звуков игры (MP3)</h3>
-    <label>Выберите событие для звука:</label>
-    <select id="m-audio-event-type">
-      <option value="background">Фоновая музыка (Loop)</option>
-      <option value="nuke">Запуск ядерных ракет</option>
-      <option value="rebellion">Бунт ИИ</option>
-      <option value="death">Уничтожение страны</option>
-      <option value="prod">Выбор ракет для производства</option>
-    </select>
-    <input type="file" id="m-audio-file-input" accept="audio/mp3">
-    <button class="btn btn-sm btn-blue" onclick="uploadAudioFile()">Загрузить MP3 в Firebase</button>
-    <p id="m-audio-upload-status" style="font-size:0.85rem; color:var(--green); margin-top:5px;"></p>
+    <div id="m-dice-log" style="margin-top:10px; font-size:0.85rem; color:var(--yellow)"></div>
   </div>
 </div>
 
@@ -324,103 +273,61 @@
   <div id="s-players" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:18px;"></div>
 </div>
 
-<!-- Модальное окно выбора ИИ в раунде 3 -->
-<div id="ii-choice-modal" class="modal-overlay hidden">
-  <div class="modal">
-    <h3>🤖 Искусственный интеллект</h3>
-    <p>Конец 3-го раунда. Выберите модель развития ИИ:</p>
-    <button class="btn btn-green" onclick="submitIIChoice('moderate')">🛡️ Умеренный ИИ (+2 ракеты, безопасно)</button>
-    <button class="btn btn-red" onclick="submitIIChoice('unrestrained')">💀 Безудержный ИИ (+4 ракеты, риск бунта)</button>
-  </div>
-</div>
-
-<!-- ПОДКЛЮЧЕНИЕ SDK И ЛОГИКА -->
+<!-- ПОДКЛЮЧЕНИЕ SDK FIREBASE -->
 <script type="module">
-  // ВСТАВЬТЕ СЮДА ВАШИ РЕАЛЬНЫЕ CDN ССЫЛКИ ИЗ НАСТРОЕК ПРОЕКТА
+  // ВСТАВЬТЕ СЮДА РЕАЛЬНЫЕ ССЫЛКИ CDN ИЗ НАСТРОЕК ВАШЕГО ПРОЕКТА
   import { initializeApp } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_APP";
-  import { getDatabase, ref, set, onValue, update, get } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_DATABASE";
-  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_STORAGE";
+  import { getDatabase, ref, set, onValue, update } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_DATABASE";
 
-  // ВСТАВЬТЕ СВОЙ КОНФИГУРАЦИОННЫЙ ОБЪЕКТ ИЗ КОНСОЛИ FIREBASE
   const firebaseConfig = {
     projectId: "wars-world-b963a",
-    // Сюда добавьтеapiKey, databaseURL, authDomain, appId и т.д.
+    // Сюда вставьте остальные ключи из консоли Firebase
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const storage = getStorage(app);
 
-  let ROLE = '';
-  let ROOM = '';
-  let PLAYER_NAME = '';
-  let PLAYER_ID = localStorage.getItem('playerId') || 'p_' + Math.random().toString(36).substr(2, 9);
-  localStorage.setItem('playerId', playerId);
+  // Инициализация звуковых эффектов из вашего репозитория GitHub Pages
+  const sounds = {
+    bg: new Audio('bg_music.mp3'),
+    nuke: new Audio('nuke.mp3'),
+    ai_rebellion: new Audio('ai_rebellion.mp3'),
+    death: new Audio('country_death.mp3'),
+    click: new Audio('click.mp3')
+  };
+  sounds.bg.loop = true;
+  sounds.bg.volume = 0.25;
 
-  let DB_STATE = null;
+  let DB = { state: 'lobby', round: 1, players: {}, giftTakenBy: null, soundTrigger: '' };
   let myProdChoice = null;
 
-  // Локальные элементы аудио
-  let audioObjects = {
-    background: null,
-    nuke: null,
-    rebellion: null,
-    death: null,
-    prod: null
-  };
-
-  // Слушатель путей звука из Firebase
-  function syncGameSounds(soundsData) {
-    if (!soundsData) return;
-    for (let key in soundsData) {
-      if (soundsData[key]) {
-        if (!audioObjects[key] || audioObjects[key].src !== soundsData[key]) {
-          // Если фоновая музыка играла, остановим перед заменой
-          if (key === 'background' && audioObjects.background) {
-            audioObjects.background.pause();
-          }
-          audioObjects[key] = new Audio(soundsData[key]);
-          if (key === 'background') {
-            audioObjects.background.loop = true;
-            audioObjects.background.volume = 0.2;
-            audioObjects.background.play().catch(e => console.log("Музыка ждет клика"));
-          }
-        }
-      }
-    }
-  }
-
-  function playSoundEvent(key) {
-    if (audioObjects[key]) {
-      audioObjects[key].currentTime = 0;
-      audioObjects[key].play().catch(e => console.log("Звук заблокирован:", e));
-    }
-  }
-
-  // Привязываем все важные методы к объекту window для кликабельности кнопок в HTML!
+  // --- ФУНКЦИИ ВЫБОРА РОЛИ И ПОДКЛЮЧЕНИЯ ---
   window.setRole = function(role) {
+    sounds.click.play();
     ROLE = role;
     document.getElementById('screen-role').classList.add('hidden');
     document.getElementById('screen-login').classList.remove('hidden');
     if (role === 'player') {
       document.getElementById('inp-name').classList.remove('hidden');
-      document.getElementById('inp-pwd').classList.add('hidden');
+      document.getElementById('inp-pass').classList.add('hidden');
     } else if (role === 'master') {
       document.getElementById('inp-name').classList.add('hidden');
-      document.getElementById('inp-pwd').classList.remove('hidden');
+      document.getElementById('inp-pass').classList.remove('hidden');
     } else {
       document.getElementById('inp-name').classList.add('hidden');
-      document.getElementById('inp-pwd').classList.add('hidden');
+      document.getElementById('inp-pass').classList.add('hidden');
     }
   };
 
   window.connect = function() {
+    sounds.click.play();
+    bgMusicPlay();
     ROOM = document.getElementById('inp-room').value.trim().toUpperCase() || 'WARS1';
     PLAYER_NAME = document.getElementById('inp-name').value.trim() || 'Страна';
-    const pwd = document.getElementById('inp-pwd').value.trim();
+    const password = document.getElementById('inp-pass').value.trim();
 
-    if (ROLE === 'master' && pwd !== 'Ron') {
-      return alert('Неверный пароль Мастера!');
+    if (ROLE === 'master' && password !== 'Ron') {
+      return alert('Неверный пароль ведущего!');
     }
 
     document.getElementById('screen-login').classList.add('hidden');
@@ -440,51 +347,59 @@
         stealthRoundsLeft: 0,
         iiType: null,
         iiFriendly: null,
-        hasTurn: false
+        hasTurn: false,
+        action: null
       });
     } else if (ROLE === 'master') {
       document.getElementById('ui-master').classList.remove('hidden');
       document.getElementById('m-room').innerText = ROOM;
-      
-      update(ref(db, `rooms/${ROOM}`), {
-        state: 'lobby',
-        round: 1,
-        asteroidHp: 0
-      });
+      update(ref(db, `rooms/${ROOM}/state`), 'lobby');
     } else if (ROLE === 'screen') {
       document.getElementById('ui-screen').classList.remove('hidden');
     }
 
-    // Запускаем слушатель Firebase для комнаты
+    // Слушатель базы данных Firebase
     onValue(ref(db, `rooms/${ROOM}`), (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
-      DB_STATE = data;
+      DB = data;
       
-      // Синхронизируем звуки
-      if (data.sounds) syncGameSounds(data.sounds);
+      // Слушаем триггеры звуков
+      if (DB.soundTrigger) {
+        playSound(DB.soundTrigger);
+        update(ref(db, `rooms/${ROOM}/soundTrigger`), ''); // Сбрасываем триггер
+      }
 
       updateAllUI();
     });
   };
 
-  function updateAllUI() {
-    if (!DB_STATE) return;
+  function bgMusicPlay() {
+    sounds.bg.play().catch(() => console.log("Фоновая музыка заблокирована браузером до активности"));
+  }
 
+  function playSound(type) {
+    if (sounds[type]) {
+      sounds[type].currentTime = 0;
+      sounds[type].play();
+    }
+  }
+
+  // --- ЛОГИКА ОБНОВЛЕНИЯ ИНТЕРФЕЙСА ---
+  function updateAllUI() {
+    document.querySelectorAll('.current-round').forEach(el => el.innerText = DB.round);
     if (ROLE === 'player') updatePlayerUI();
     if (ROLE === 'master') updateMasterUI();
     if (ROLE === 'screen') updateScreenUI();
   }
 
-  // --- ИГРОК ---
   function updatePlayerUI() {
-    const me = DB_STATE.players ? DB_STATE.players[PLAYER_ID] : null;
+    const me = DB.players ? DB.players[PLAYER_ID] : null;
     if (!me) return;
 
     document.getElementById('p-lives').innerText = me.lives;
     document.getElementById('p-ya').innerText = me.ya;
     document.getElementById('p-pro').innerText = me.pro;
-    document.getElementById('p-round').innerText = DB_STATE.round;
 
     // Скрытый режим
     const stealthTag = document.getElementById('p-stealth-tag');
@@ -501,25 +416,107 @@
     } else {
       stealthTag.classList.add('hidden');
       stealthInfo.classList.add('hidden');
-      btnStealth.classList.remove('hidden');
-      if (DB_STATE.round < 2) btnStealth.classList.add('hidden');
+      if (DB.round >= 2) btnStealth.classList.remove('hidden');
+      else btnStealth.classList.add('hidden');
     }
 
-    // ИИ инфо
-    const iiInfo = document.getElementById('p-ii-info');
-    const iiTag = document.getElementById('p-ii-tag');
-    const iiStatus = document.getElementById('p-ii-status');
-    if (me.iiType) {
-      iiInfo.classList.remove('hidden');
-      iiTag.innerText = me.iiType === 'moderate' ? 'ИИ: Умеренный' : 'ИИ: Безудержный';
-      iiTag.className = 'tag ' + (me.iiType === 'moderate' ? 'tag-green' : 'tag-red');
-      if (me.iiType === 'unrestrained' && me.iiFriendly !== null) {
-        iiStatus.innerText = me.iiFriendly ? '(Дружественный)' : '(Опасный)';
+    // Лимиты производства (рассчитанные из бонусов)
+    const currentProdAmount = calcProduction(me);
+    document.getElementById('prod-pro-amount').innerText = currentProdAmount;
+    document.getElementById('prod-ya-amount').innerText = currentProdAmount;
+
+    // Скрытый арсенал
+    const btnArsenal = document.getElementById('btn-arsenal');
+    const arsenalInfo = document.getElementById('p-arsenal-info');
+    if (DB.giftTakenBy === undefined || DB.giftTakenBy === null) {
+      btnArsenal.classList.remove('hidden');
+      arsenalInfo.classList.add('hidden');
+    } else if (DB.giftTakenBy === PLAYER_ID) {
+      btnArsenal.classList.add('hidden');
+      arsenalInfo.classList.remove('hidden');
+    } else {
+      btnArsenal.classList.add('hidden');
+      arsenalInfo.classList.add('hidden');
+    }
+
+    // Фаза ожидания / планирования
+    const planDiv = document.getElementById('p-phase-planning');
+    const waitDiv = document.getElementById('p-phase-wait');
+
+    if (DB.state === 'planning') {
+      if (me.hasTurn) {
+        planDiv.classList.add('hidden');
+        waitDiv.classList.remove('hidden');
       } else {
-        iiStatus.innerText = '';
+        planDiv.classList.remove('hidden');
+        waitDiv.classList.add('hidden');
+        updateTargetsList(DB.players);
+        updateYaSlider(me);
       }
     } else {
-      iiInfo.classList.add('hidden');
+      planDiv.classList.add('hidden');
+      waitDiv.classList.add('hidden');
     }
 
-    // ПоNo response
+    // Выбор ИИ на 3-м раунде
+    if (DB.round === 3 && DB.state === 'planning' && !me.hasTurn && !me.iiType) {
+      showIIChoice();
+    }
+  }
+
+  function calcProduction(player) {
+    let base = 1; // сток
+    if (player.stealthActive) base += 2; // скрытый режим
+    if (player.iiType === 'moderate') base += 2; // умеренный ИИ
+    if (player.iiType === 'unrestrained') base += 4; // безудержный ИИ
+    return base;
+  }
+
+  window.selectProd = function(type) {
+    sounds.click.play();
+    myProdChoice = type;
+    document.querySelectorAll('#prod-choices .radio-card').forEach(c => c.classList.remove('selected'));
+    document.querySelector(`#prod-choices .radio-card[data-prod="${type}"]`).classList.add('selected');
+  };
+
+  window.activateStealth = function() {
+    sounds.click.play();
+    const me = DB.players[PLAYER_ID];
+    update(ref(db, `rooms/${ROOM}/players/${PLAYER_ID}`), {
+      stealthActive: true,
+      stealthRoundsLeft: 4
+    });
+  };
+
+  window.takeArsenal = function() {
+    sounds.click.play();
+    const me = DB.players[PLAYER_ID];
+    update(ref(db, `rooms/${ROOM}`), { giftTakenBy: PLAYER_ID });
+    update(ref(db, `rooms/${ROOM}/players/${PLAYER_ID}`), {
+      pro: me.pro + 2,
+      ya: me.ya + 5
+    });
+  };
+
+  window.submitTurn = function() {
+    sounds.click.play();
+    const me = DB.players[PLAYER_ID];
+    if (!myProdChoice) return alert('Выберите производство!');
+    const target = document.getElementById('p-target').value;
+    const yaSpent = parseInt(document.getElementById('p-ya-count').value) || 0;
+
+    if (target !== 'none' && yaSpent <= 0) return alert('Укажите количество ракет для удара!');
+
+    update(ref(db, `rooms/${ROOM}/players/${PLAYER_ID}`), {
+      hasTurn: true,
+      action: {
+        production: myProdChoice,
+        target: target,
+        yaSpent: yaSpent
+      }
+    });
+  };
+
+  function updateTargetsList(players) {
+    const select = document.getElementById('p-target');
+    select.innerHTML = '<No response
