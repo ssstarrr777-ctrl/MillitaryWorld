@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Военный мир</title>
+  <title>=Военный мир</title>
   <style>
     :root {
       --bg: #0a0e14;
@@ -54,7 +54,11 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-    .header .sub { font-size: 11px; letter-spacing: 4px; color: var(--dim); }
+    .header .sub {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--dim);
+    }
     .card {
       background: var(--panel);
       border-radius: var(--radius);
@@ -89,9 +93,10 @@
     .btn-blue { background: var(--blue); }
     .btn-green { background: var(--green); color: #000; }
     .btn-yellow { background: var(--yellow); color: #000; }
+    .btn-orange { background: var(--orange); }
     .btn-purple { background: var(--purple); }
     .btn-sm { width: auto; display: inline-block; padding: 8px 16px; font-size: 0.85rem; margin: 4px; }
-    .btn:disabled { opacity: 0.3; pointer-events: none; }
+    .btn:disabled { opacity: 0.4; pointer-events: none; }
     input, select {
       width: 100%;
       padding: 12px;
@@ -126,21 +131,21 @@
     .tag-green { background: var(--green); color: #000; }
     .tag-yellow { background: var(--yellow); color: #000; }
     .tag-purple { background: var(--purple); color: #fff; }
-    .pulse { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-    .radio-grid { display: flex; gap: 10px; margin-bottom: 15px; }
+    .pulse { animation: pulse 1.5s infinite; }
+    .radio-grid { display: flex; gap: 10px; flex-wrap: wrap; }
     .radio-card {
-      flex: 1;
+      flex: 1; min-width: 120px;
       background: var(--panel2);
       border: 2px solid transparent;
       border-radius: 8px;
-      padding: 15px;
+      padding: 12px;
       text-align: center;
       cursor: pointer;
       transition: 0.2s;
     }
     .radio-card.selected { border-color: var(--blue); background: #1a2b40; }
-    .radio-card .emoji { font-size: 2rem; margin-bottom: 5px; }
+    .radio-card .emoji { font-size: 2rem; }
     .attack-item {
       background: var(--panel2);
       border-left: 4px solid var(--red);
@@ -168,13 +173,13 @@
 <body>
 
 <div class="header">
-  <h1>⚔️ =ВОЕННЫЙ МИР</h1>
+  <h1>=Военный мир</h1>
   <div class="sub">СТРАТЕГИЧЕСКАЯ НАСТОЛЬНАЯ ИГРА</div>
 </div>
 
 <!-- ВЫБОР РОЛИ -->
 <div id="screen-role" class="card">
-  <h2>🎯 Выберите вашу роль:</h2>
+  <h2>🎯 Выберите роль</h2>
   <button class="btn btn-red" onclick="setRole('player')">🛡️ Я — Игрок (Страна)</button>
   <button class="btn btn-blue" onclick="setRole('master')">🎓 Я — Ведущий (Мастер)</button>
   <button class="btn" style="background:#555" onclick="setRole('screen')">🖥️ Общий экран</button>
@@ -182,222 +187,339 @@
 
 <!-- ВХОД -->
 <div id="screen-login" class="card hidden">
-  <h2>🔑 Подключение к комнате</h2>
+  <h2>🔑 Подключение</h2>
   <input type="text" id="inp-room" placeholder="Код комнаты (напр. WARS1)" value="WARS1">
-  <input type="text" id="inp-name" placeholder="Название вашей страны" class="hidden">
-  <button class="btn btn-green" onclick="connect()">ВОЙТИ В ИГРУ</button>
+  <input type="text" id="inp-name" placeholder="Название страны" class="hidden">
+  <input type="password" id="inp-pwd" placeholder="Пароль Мастера (Ron)" class="hidden">
+  <button class="btn btn-green" onclick="connect()">ВОЙТИ</button>
 </div>
 
 <!-- ИНТЕРФЕЙС ИГРОКА -->
 <div id="ui-player" class="card hidden">
   <h2>🌍 <span id="p-name">...</span> <span id="p-stealth-tag" class="tag tag-purple hidden">СКРЫТ</span></h2>
   <div class="stat-row"><span>❤️ Жизни</span> <span class="stat-val stat-lives" id="p-lives">3</span></div>
-  <div class="stat-row"><span>☢️ Ядерные боеголовки (ЯБ)</span> <span class="stat-val stat-ya" id="p-ya">1</span></div>
+  <div class="stat-row"><span>☢️ Ядерные боеголовки</span> <span class="stat-val stat-ya" id="p-ya">1</span></div>
   <div class="stat-row"><span>🛡️ Противоракеты (ПРО)</span> <span class="stat-val stat-pro" id="p-pro">1</span></div>
-  
-  <div id="p-ii-info" class="hidden" style="margin-top:10px; padding:10px; background:var(--panel2); border-radius:6px;">
-    <span id="p-ii-tag" class="tag">ИИ: Не активирован</span>
-    <span id="p-ii-status" style="margin-left:8px; font-weight:bold;"></span>
+  <div id="p-ii-info" class="hidden" style="margin-top:8px; padding:6px; background:var(--panel2); border-radius:6px;">
+    <span id="p-ii-tag" class="tag">ИИ: -</span>
+    <span id="p-ii-status" style="margin-left:8px; font-size:0.85rem;"></span>
   </div>
 
-  <!-- ФАЗА ПЛАНИРОВАНИЯ -->
   <div id="p-phase-planning" class="hidden">
-    <h3>📋 Планирование — Раунд <span id="p-round">1</span></h3>
+    <h3>📋 Фаза планирования — Раунд <span id="p-round">1</span></h3>
 
     <!-- Скрытый режим -->
-    <div id="p-stealth-block" style="margin-bottom:15px; margin-top: 10px;">
-      <button class="btn btn-purple btn-sm" id="btn-stealth">🥷 Войти в скрытый режим</button>
-      <div id="p-stealth-info" class="hidden" style="font-size:0.85rem; color:var(--purple); margin-top:5px;">
-        Вы в скрытом режиме! Осталось раундов: <span id="p-stealth-left">4</span>
+    <div id="p-stealth-block" style="margin-bottom:12px;">
+      <button class="btn btn-purple btn-sm" id="btn-stealth" onclick="activateStealth()">🥷 Войти в скрытый режим</button>
+      <div id="p-stealth-info" class="hidden" style="font-size:0.8rem; color:var(--purple); margin-top:4px;">
+        Скрытый режим активен. Осталось раундов: <span id="p-stealth-left">4</span>
       </div>
     </div>
 
-    <!-- Новое визуальное производство -->
-    <label style="font-weight:700; margin-top:15px; display:block;">🏭 Выберите, что произвести в этом раунде:</label>
+    <!-- Производство (обязательное) -->
+    <label style="font-weight:700;">🏭 Производство (обязательно):</label>
     <div class="radio-grid" id="prod-choices">
       <div class="radio-card" data-prod="pro" onclick="selectProd('pro')">
         <div class="emoji">🛡️</div>
         <div><strong>ПРО</strong></div>
-        <div style="font-size:1.1rem; color:var(--green); margin-top:5px;">+<span id="prod-pro-amount">1</span></div>
+        <div style="font-size:0.8rem; color:var(--dim);">+<span id="prod-pro-amount">1</span></div>
       </div>
       <div class="radio-card" data-prod="ya" onclick="selectProd('ya')">
         <div class="emoji">☢️</div>
         <div><strong>ЯБ</strong></div>
-        <div style="font-size:1.1rem; color:var(--yellow); margin-top:5px;">+<span id="prod-ya-amount">1</span></div>
+        <div style="font-size:0.8rem; color:var(--dim);">+<span id="prod-ya-amount">1</span></div>
       </div>
     </div>
 
-    <!-- Удар -->
-    <label style="font-weight:700; margin-top:15px; display:block;">💥 Нанести Ядерный удар (опционально):</label>
-    <select id="p-target" onchange="toggleYaInput()">
+    <!-- Удар (опционально) -->
+    <label style="font-weight:700; margin-top:14px; display:block;">💥 Ядерный удар (опционально):</label>
+    <select id="p-target">
       <option value="none">— Без атаки —</option>
     </select>
-    
-    <div id="p-ya-input-block" class="hidden">
-      <label style="font-size:0.85rem; color:var(--dim);">Количество боеголовок для залпа:</label>
-      <input type="number" id="p-ya-count" min="1" value="1">
-    </div>
+    <label style="font-size:0.85rem; color:var(--dim);">Количество боеголовок для залпа:</label>
+    <input type="range" id="p-ya-count" min="0" max="0" value="0" step="1" oninput="document.getElementById('p-ya-count-val').innerText=this.value">
+    <span id="p-ya-count-val" style="font-weight:700; font-size:1.2rem;">0</span>
 
-    <!-- Выбор цели для взрыва подарка (только на 6 раунде) -->
-    <div id="p-gift-target-block" class="hidden" style="margin-top: 15px; padding:10px; border:1px solid var(--yellow); border-radius:6px;">
-      <label style="color:var(--yellow); font-weight:700;">⚠️ Выберите цель для взрыва Тайного Арсенала в конце раунда 6:</label>
-      <select id="p-gift-target">
-        <option value="none">— Выберите цель —</option>
-      </select>
-    </div>
-
-    <button class="btn btn-red" id="btn-submit" style="margin-top:20px;">✅ ПОДТВЕРДИТЬ ХОД</button>
+    <button class="btn btn-red" id="btn-submit" onclick="submitTurn()">✅ ПОДТВЕРДИТЬ ХОД</button>
   </div>
 
   <div id="p-phase-wait" class="hidden">
-    <h3 class="pulse" style="color: var(--blue); text-align:center; margin-top:20px;">⏳ Ваш ход отправлен. Ожидайте других игроков...</h3>
+    <h3 class="pulse">⏳ Ожидание других игроков...</h3>
   </div>
 
   <!-- Кнопка тайного арсенала -->
-  <button class="btn btn-yellow hidden" id="btn-arsenal" style="margin-top:20px; background: gold; color: black;">
+  <button class="btn btn-yellow hidden" id="btn-arsenal" onclick="takeArsenal()" style="margin-top:16px;">
     🚀 Вы знаете о тайном запасе списанного арсенала. Успеть забрать арсенал себе!
   </button>
-  <div id="p-arsenal-info" class="hidden" style="margin-top:15px; padding:10px; background:#332b00; border: 1px solid var(--yellow); border-radius:6px; font-size:0.9rem;">
-    ⚠️ Арсенал взят! Вы получили: +2 ПРО, +5 ЯБ. Эти 5 ЯБ нестабильны и детонируют на территории выбранной вами страны в конце раунда 6!
+  <div id="p-arsenal-info" class="hidden" style="margin-top:8px; padding:8px; background:#332b00; border-radius:6px; font-size:0.9rem;">
+    ⚠️ Арсенал получен: +2 ПРО, +5 ЯБ. Эти 5 ЯБ взорвутся в конце 6-го раунда на территории выбранной вами страны.
   </div>
 </div>
 
-<!-- ИНТЕРФЕЙС ВЕДУЩЕГО -->
+<!-- ИНТЕРФЕЙС МАСТЕРА -->
 <div id="ui-master" class="card hidden">
   <h2>🎓 Панель Мастера</h2>
   <p>Комната: <strong id="m-room">-</strong> | Раунд: <strong id="m-round">1</strong> | Фаза: <strong id="m-phase">лобби</strong></p>
   
-  <div id="m-controls" style="margin-top: 15px;">
-    <button class="btn btn-green" id="m-btn-start">🚀 Начать игру</button>
-    <button class="btn btn-blue hidden" id="m-btn-resolve">⚔️ Перейти к разрешению ударов</button>
-    <button class="btn btn-orange hidden" id="m-btn-next">⏭️ Следующий раунд</button>
+  <div id="m-controls" style="margin-top:10px;">
+    <button class="btn btn-green" id="m-btn-start" onclick="masterStartGame()">🚀 Начать игру</button>
+    <button class="btn btn-blue hidden" id="m-btn-resolve" onclick="masterResolve()">⚔️ Перейти к разрешению ударов</button>
+    <button class="btn btn-orange hidden" id="m-btn-next" onclick="masterNextRound()">⏭️ Следующий раунд</button>
   </div>
 
-  <!-- ПАНЕЛЬ РАЗРЕШЕНИЯ УДАРОВ -->
-  <div id="m-resolution" class="hidden" style="margin-top:20px;">
-    <h3>💥 Очерёдность ядерных ударов:</h3>
+  <!-- Панель управления ИИ и Астероидом -->
+  <div id="m-events" class="hidden" style="margin-top: 15px; padding: 12px; background: var(--panel2); border-radius: 8px;">
+    <h3>⚙️ События и Броски раунда</h3>
+    <div id="m-ai-roll-block" class="hidden" style="margin-top: 5px;">
+      <p style="color:var(--yellow)">⚠️ Раунд 5: Самоопределение Безудержного ИИ</p>
+      <select id="m-ai-select-player"></select>
+      <input type="number" id="m-ai-roll-val" placeholder="Значение d20 (1-20)" min="1" max="20">
+      <button class="btn btn-sm btn-yellow" onclick="submitAIRoll()">Записать самоопределение ИИ</button>
+    </div>
+    <div id="m-rebellion-block" class="hidden" style="margin-top: 10px;">
+      <p style="color:var(--red)">🔥 Раунд 4+: Бросок инициативы ИИ (против бунта)</p>
+      <select id="m-reb-select-player"></select>
+      <input type="number" id="m-reb-roll-val" placeholder="Значение d20 (1-20)" min="1" max="20">
+      <button class="btn btn-sm btn-red" onclick="submitRebellionRoll()">Применить бросок против бунта</button>
+    </div>
+  </div>
+
+  <!-- Разрешение ударов -->
+  <div id="m-resolution" class="hidden" style="margin-top:14px;">
+    <h3>💥 Очерёдность ударов (по убыванию):</h3>
     <div id="m-attack-queue"></div>
-
-    <div id="m-dice-panel" class="hidden" style="margin-top:15px; padding:15px; background:var(--panel2); border-radius:8px; border: 1px solid var(--blue);">
-      <h4>🎲 Отражение удара в реальном времени</h4>
-      <p>Атака: <span id="m-dice-attacker" style="color:var(--yellow); font-weight:bold;"></span> → <span id="m-dice-target" style="color:var(--red); font-weight:bold;"></span></p>
-      <p>Боеголовка №<span id="m-dice-wh-num" style="font-weight:bold;">1</span> | Попытка ПРО №<span id="m-dice-pro-num" style="font-weight:bold;">1</span></p>
-      <p>Требуемое значение кубика d20 для сбития: <strong id="m-dice-needed" style="color:var(--green); font-size:1.3rem;">4-20</strong></p>
-      
-      <div id="m-target-pro-count" style="margin: 10px 0; font-size:0.9rem; color:var(--dim);"></div>
-
-      <input type="number" id="m-dice-input" placeholder="Результат d20" min="1" max="20">
-      
-      <button class="btn btn-sm btn-blue" onclick="resolveDiceRoll()">🎲 Ввести бросок</button>
-      <button class="btn btn-sm btn-red" onclick="skipInterceptor()">❌ Пропустить (ракета падает на страну)</button>
+    <div id="m-dice-panel" class="hidden" style="margin-top:12px; padding:12px; background:var(--panel2); border-radius:8px;">
+      <h4>🎲 Бросок ПРО</h4>
+      <p>Атака: <span id="m-dice-attacker"></span> → <span id="m-dice-target"></span></p>
+      <p>Боеголовка #<span id="m-dice-wh-num">1</span> | Попытка ПРО #<span id="m-dice-pro-num">1</span></p>
+      <p>Требуемый бросок: <strong id="m-dice-needed">3-20</strong></p>
+      <input type="number" id="m-dice-input" placeholder="Результат броска d20 (1-20)" min="1" max="20">
+      <button class="btn btn-sm btn-blue" onclick="resolveDiceRoll()">🎲 Применить бросок</button>
+      <button class="btn btn-sm" style="background:#555;" onclick="skipInterceptor()">⏭️ Пропустить (дать упасть)</button>
     </div>
-    
-    <!-- Панель событий ИИ в 5 раунде -->
-    <div id="m-ii-setup-panel" class="hidden" style="margin-top:15px; padding:15px; background:var(--panel2); border-radius:8px; border:1px solid var(--purple);">
-      <h4>🤖 Самоопределение Безудержных ИИ (Раунд 5)</h4>
-      <div id="m-ii-players-list"></div>
-    </div>
+    <div id="m-dice-log" style="margin-top:10px; font-size:0.85rem; color: var(--dim)"></div>
+  </div>
 
-    <!-- Панель бунта ИИ с 4 раунда -->
-    <div id="m-ii-rebellion-panel" class="hidden" style="margin-top:15px; padding:15px; background:var(--panel2); border-radius:8px; border:1px solid var(--red);">
-      <h4>💀 Проверка против инициативы ИИ</h4>
-      <div id="m-ii-rebellion-list"></div>
-    </div>
-
-    <div id="m-dice-log" style="margin-top:15px; padding:10px; background:#000; border-radius:6px; font-family:monospace; font-size:0.85rem; max-height: 150px; overflow-y: auto;"></div>
+  <!-- Управление аудиофайлами (Storage) -->
+  <div id="m-audio-uploader" style="margin-top:20px; padding:12px; background: var(--panel2); border-radius: 8px;">
+    <h3>🎵 Загрузка звуков игры (MP3)</h3>
+    <label>Выберите событие для звука:</label>
+    <select id="m-audio-event-type">
+      <option value="background">Фоновая музыка (Loop)</option>
+      <option value="nuke">Запуск ядерных ракет</option>
+      <option value="rebellion">Бунт ИИ</option>
+      <option value="death">Уничтожение страны</option>
+      <option value="prod">Выбор ракет для производства</option>
+    </select>
+    <input type="file" id="m-audio-file-input" accept="audio/mp3">
+    <button class="btn btn-sm btn-blue" onclick="uploadAudioFile()">Загрузить MP3 в Firebase</button>
+    <p id="m-audio-upload-status" style="font-size:0.85rem; color:var(--green); margin-top:5px;"></p>
   </div>
 </div>
 
 <!-- ЭКРАН -->
 <div id="ui-screen" class="card hidden" style="text-align:center;">
-  <h1 style="font-size:2.3rem; letter-spacing:4px; color:var(--red);">🌐 =ВОЕННЫЙ МИР</h1>
-  <h2>Раунд: <span id="s-round">1</span> | ☄️ Астероид: <span id="s-asteroid" style="color:var(--orange); font-weight:bold;">—</span></h2>
-  <div id="s-players" style="display:flex; flex-wrap:wrap; gap:15px; justify-content:center; margin-top:20px;"></div>
+  <h1 style="font-size:2rem; letter-spacing:3px;">🌐 КАРТА МИРА</h1>
+  <h2>Раунд: <span id="s-round">1</span> | ☄️ Астероид: <span id="s-asteroid" style="color:var(--orange);">—</span></h2>
+  <div id="s-players" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:18px;"></div>
 </div>
 
-<script type="module">
-  // !!! ВСТАВЬТЕ СЮДА СВОИ РЕАЛЬНЫЕ CDN ССЫЛКИ ИЗ КОНСОЛИ FIREBASE !!!
-  import { initializeApp } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_APP";
-  import { getDatabase, ref, set, onValue, update } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_DATABASE";
+<!-- Модальное окно выбора ИИ в раунде 3 -->
+<div id="ii-choice-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>🤖 Искусственный интеллект</h3>
+    <p>Конец 3-го раунда. Выберите модель развития ИИ:</p>
+    <button class="btn btn-green" onclick="submitIIChoice('moderate')">🛡️ Умеренный ИИ (+2 ракеты, безопасно)</button>
+    <button class="btn btn-red" onclick="submitIIChoice('unrestrained')">💀 Безудержный ИИ (+4 ракеты, риск бунта)</button>
+  </div>
+</div>
 
+<!-- ПОДКЛЮЧЕНИЕ SDK И ЛОГИКА -->
+<script type="module">
+  // ВСТАВЬТЕ СЮДА ВАШИ РЕАЛЬНЫЕ CDN ССЫЛКИ ИЗ НАСТРОЕК ПРОЕКТА
+  import { initializeApp } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_APP";
+  import { getDatabase, ref, set, onValue, update, get } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_DATABASE";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "ВСТАВЬТЕ_URL_БИБЛИОТЕКИ_FIREBASE_STORAGE";
+
+  // ВСТАВЬТЕ СВОЙ КОНФИГУРАЦИОННЫЙ ОБЪЕКТ ИЗ КОНСОЛИ FIREBASE
   const firebaseConfig = {
     projectId: "wars-world-b963a",
-    // Сюда добавьте остальные поля вашего config, сгенерированного в консоли Firebase
+    // Сюда добавьтеapiKey, databaseURL, authDomain, appId и т.д.
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const storage = getStorage(app);
 
   let ROLE = '';
   let ROOM = '';
   let PLAYER_NAME = '';
   let PLAYER_ID = localStorage.getItem('playerId') || 'p_' + Math.random().toString(36).substr(2, 9);
-  localStorage.setItem('playerId', PLAYER_ID);
+  localStorage.setItem('playerId', playerId);
 
-  let DB = {};
+  let DB_STATE = null;
   let myProdChoice = null;
 
+  // Локальные элементы аудио
+  let audioObjects = {
+    background: null,
+    nuke: null,
+    rebellion: null,
+    death: null,
+    prod: null
+  };
+
+  // Слушатель путей звука из Firebase
+  function syncGameSounds(soundsData) {
+    if (!soundsData) return;
+    for (let key in soundsData) {
+      if (soundsData[key]) {
+        if (!audioObjects[key] || audioObjects[key].src !== soundsData[key]) {
+          // Если фоновая музыка играла, остановим перед заменой
+          if (key === 'background' && audioObjects.background) {
+            audioObjects.background.pause();
+          }
+          audioObjects[key] = new Audio(soundsData[key]);
+          if (key === 'background') {
+            audioObjects.background.loop = true;
+            audioObjects.background.volume = 0.2;
+            audioObjects.background.play().catch(e => console.log("Музыка ждет клика"));
+          }
+        }
+      }
+    }
+  }
+
+  function playSoundEvent(key) {
+    if (audioObjects[key]) {
+      audioObjects[key].currentTime = 0;
+      audioObjects[key].play().catch(e => console.log("Звук заблокирован:", e));
+    }
+  }
+
+  // Привязываем все важные методы к объекту window для кликабельности кнопок в HTML!
   window.setRole = function(role) {
     ROLE = role;
     document.getElementById('screen-role').classList.add('hidden');
     document.getElementById('screen-login').classList.remove('hidden');
     if (role === 'player') {
       document.getElementById('inp-name').classList.remove('hidden');
+      document.getElementById('inp-pwd').classList.add('hidden');
+    } else if (role === 'master') {
+      document.getElementById('inp-name').classList.add('hidden');
+      document.getElementById('inp-pwd').classList.remove('hidden');
+    } else {
+      document.getElementById('inp-name').classList.add('hidden');
+      document.getElementById('inp-pwd').classList.add('hidden');
     }
   };
 
   window.connect = function() {
     ROOM = document.getElementById('inp-room').value.trim().toUpperCase() || 'WARS1';
     PLAYER_NAME = document.getElementById('inp-name').value.trim() || 'Страна';
+    const pwd = document.getElementById('inp-pwd').value.trim();
+
+    if (ROLE === 'master' && pwd !== 'Ron') {
+      return alert('Неверный пароль Мастера!');
+    }
+
     document.getElementById('screen-login').classList.add('hidden');
 
     if (ROLE === 'player') {
       document.getElementById('ui-player').classList.remove('hidden');
       document.getElementById('p-name').innerText = PLAYER_NAME;
       
-      // Первичная регистрация игрока
-      const pRef = ref(db, `rooms/${ROOM}/players/${PLAYER_ID}`);
-      onValue(pRef, (snap) => {
-        if (!snap.exists()) {
-          set(pRef, {
-            id: PLAYER_ID,
-            name: PLAYER_NAME,
-            lives: 3,
-            ya: 1,
-            pro: 1,
-            stealthActive: false,
-            stealthRoundsLeft: 0,
-            iiType: null,
-            iiStatus: null,
-            hasTurn: false
-          });
-        }
-      }, { onlyOnce: true });
-
+      const playerRef = ref(db, `rooms/${ROOM}/players/${PLAYER_ID}`);
+      update(playerRef, {
+        id: PLAYER_ID,
+        name: PLAYER_NAME,
+        lives: 3,
+        ya: 1,
+        pro: 1,
+        stealthActive: false,
+        stealthRoundsLeft: 0,
+        iiType: null,
+        iiFriendly: null,
+        hasTurn: false
+      });
     } else if (ROLE === 'master') {
       document.getElementById('ui-master').classList.remove('hidden');
       document.getElementById('m-room').innerText = ROOM;
       
-      // Мастер сбрасывает или инициализирует комнату
       update(ref(db, `rooms/${ROOM}`), {
         state: 'lobby',
         round: 1,
-        asteroidHp: 0,
-        giftTakenBy: null,
-        giftTarget: null
+        asteroidHp: 0
       });
-
     } else if (ROLE === 'screen') {
       document.getElementById('ui-screen').classList.remove('hidden');
     }
 
-    // Запуск прослушивания всей базы данных
+    // Запускаем слушатель Firebase для комнаты
     onValue(ref(db, `rooms/${ROOM}`), (snapshot) => {
-      const val = snapshot.val();
-      if (!val) return;
-      DB = val;
+      const data = snapshot.val();
+      if (!data) return;
+      DB_STATE = data;
+      
+      // Синхронизируем звуки
+      if (data.sounds) syncGameSounds(data.sounds);
+
       updateAllUI();
     });
   };
 
-No response
+  function updateAllUI() {
+    if (!DB_STATE) return;
+
+    if (ROLE === 'player') updatePlayerUI();
+    if (ROLE === 'master') updateMasterUI();
+    if (ROLE === 'screen') updateScreenUI();
+  }
+
+  // --- ИГРОК ---
+  function updatePlayerUI() {
+    const me = DB_STATE.players ? DB_STATE.players[PLAYER_ID] : null;
+    if (!me) return;
+
+    document.getElementById('p-lives').innerText = me.lives;
+    document.getElementById('p-ya').innerText = me.ya;
+    document.getElementById('p-pro').innerText = me.pro;
+    document.getElementById('p-round').innerText = DB_STATE.round;
+
+    // Скрытый режим
+    const stealthTag = document.getElementById('p-stealth-tag');
+    const stealthBlock = document.getElementById('p-stealth-block');
+    const stealthInfo = document.getElementById('p-stealth-info');
+    const btnStealth = document.getElementById('btn-stealth');
+    const stealthLeft = document.getElementById('p-stealth-left');
+
+    if (me.stealthActive) {
+      stealthTag.classList.remove('hidden');
+      stealthInfo.classList.remove('hidden');
+      btnStealth.classList.add('hidden');
+      stealthLeft.innerText = me.stealthRoundsLeft;
+    } else {
+      stealthTag.classList.add('hidden');
+      stealthInfo.classList.add('hidden');
+      btnStealth.classList.remove('hidden');
+      if (DB_STATE.round < 2) btnStealth.classList.add('hidden');
+    }
+
+    // ИИ инфо
+    const iiInfo = document.getElementById('p-ii-info');
+    const iiTag = document.getElementById('p-ii-tag');
+    const iiStatus = document.getElementById('p-ii-status');
+    if (me.iiType) {
+      iiInfo.classList.remove('hidden');
+      iiTag.innerText = me.iiType === 'moderate' ? 'ИИ: Умеренный' : 'ИИ: Безудержный';
+      iiTag.className = 'tag ' + (me.iiType === 'moderate' ? 'tag-green' : 'tag-red');
+      if (me.iiType === 'unrestrained' && me.iiFriendly !== null) {
+        iiStatus.innerText = me.iiFriendly ? '(Дружественный)' : '(Опасный)';
+      } else {
+        iiStatus.innerText = '';
+      }
+    } else {
+      iiInfo.classList.add('hidden');
+    }
+
+    // ПоNo response
