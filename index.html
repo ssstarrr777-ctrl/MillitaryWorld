@@ -34,6 +34,7 @@
       align-items: center;
       padding: 10px;
     }
+    /* Шапка */
     .header {
       width: 100%;
       max-width: 900px;
@@ -44,6 +45,8 @@
       margin-bottom: 15px;
       box-shadow: var(--shadow);
       border-bottom: 3px solid var(--red);
+      position: relative;
+      overflow: hidden;
     }
     .header h1 {
       font-size: clamp(24px, 5vw, 38px);
@@ -59,6 +62,8 @@
       letter-spacing: 4px;
       color: var(--dim);
     }
+
+    /* Карточки */
     .card {
       background: var(--panel);
       border-radius: var(--radius);
@@ -68,9 +73,12 @@
       width: 100%;
       max-width: 900px;
       border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.2s;
     }
     .card h2 { font-size: 1.3rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     .card h3 { font-size: 1.1rem; margin: 12px 0 8px; color: var(--blue); }
+
+    /* Кнопки */
     .btn {
       display: block;
       width: 100%;
@@ -90,13 +98,22 @@
     }
     .btn:active { transform: scale(0.98); }
     .btn-red { background: var(--red); border-color: var(--red2); }
+    .btn-red:hover { background: #d32f3e; }
     .btn-blue { background: var(--blue); }
+    .btn-blue:hover { background: #2980b9; }
     .btn-green { background: var(--green); color: #000; }
+    .btn-green:hover { background: #27ae60; }
     .btn-yellow { background: var(--yellow); color: #000; }
+    .btn-yellow:hover { background: #d4ac0d; }
     .btn-orange { background: var(--orange); }
+    .btn-orange:hover { background: #d35400; }
     .btn-purple { background: var(--purple); }
+    .btn-purple:hover { background: #8e44ad; }
     .btn-sm { width: auto; display: inline-block; padding: 8px 16px; font-size: 0.85rem; margin: 4px; }
+
     .btn:disabled { opacity: 0.4; pointer-events: none; }
+
+    /* Инпуты */
     input, select {
       width: 100%;
       padding: 12px;
@@ -107,6 +124,8 @@
       border-radius: 6px;
       font-size: 1rem;
     }
+
+    /* Статус-бары */
     .stat-row {
       display: flex;
       justify-content: space-between;
@@ -118,7 +137,10 @@
     .stat-lives { color: var(--red); }
     .stat-ya { color: var(--yellow); }
     .stat-pro { color: var(--green); }
+
     .hidden { display: none !important; }
+
+    /* Тэги */
     .tag {
       display: inline-block;
       padding: 3px 10px;
@@ -131,8 +153,12 @@
     .tag-green { background: var(--green); color: #000; }
     .tag-yellow { background: var(--yellow); color: #000; }
     .tag-purple { background: var(--purple); color: #fff; }
-    .pulse { animation: pulse 1.5s infinite; }
+
+    /* Анимация пульса */
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .pulse { animation: pulse 1.5s infinite; }
+
+    /* Радио-карточки для выбора */
     .radio-grid { display: flex; gap: 10px; flex-wrap: wrap; }
     .radio-card {
       flex: 1; min-width: 120px;
@@ -146,6 +172,8 @@
     }
     .radio-card.selected { border-color: var(--blue); background: #1a2b40; }
     .radio-card .emoji { font-size: 2rem; }
+
+    /* Список атак */
     .attack-item {
       background: var(--panel2);
       border-left: 4px solid var(--red);
@@ -153,6 +181,8 @@
       margin: 8px 0;
       border-radius: 6px;
     }
+
+    /* Модальное окно для бросков */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.85);
@@ -168,30 +198,35 @@
       text-align: center;
       box-shadow: 0 0 40px rgba(255,0,0,0.3);
     }
+    .dice-result {
+      font-size: 4rem;
+      font-weight: 900;
+      margin: 15px 0;
+      color: var(--yellow);
+    }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>☢️ =Военный мир</h1>
-  <div class="sub">СИНХРОННАЯ СЕТЕВАЯ НАСТОЛЬНАЯ ИГРА</div>
+  <h1>☢️ WARS WORLD</h1>
+  <div class="sub">ВОЕННЫЙ МИР · НАСТОЛЬНАЯ ИГРА</div>
 </div>
 
 <!-- ВЫБОР РОЛИ -->
 <div id="screen-role" class="card">
   <h2>🎯 Выберите роль</h2>
-  <button class="btn btn-red" onclick="window.setRole('player')">🛡️ Я — Игрок (Страна)</button>
-  <button class="btn btn-blue" onclick="window.setRole('master')">🎓 Я — Ведущий (Мастер)</button>
-  <button class="btn" style="background:#555" onclick="window.setRole('screen')">🖥️ Общий экран</button>
+  <button class="btn btn-red" onclick="setRole('player')">🛡️ Я — Игрок (Страна)</button>
+  <button class="btn btn-blue" onclick="setRole('master')">🎓 Я — Ведущий (Мастер)</button>
+  <button class="btn" style="background:#555" onclick="setRole('screen')">🖥️ Общий экран</button>
 </div>
 
 <!-- ВХОД -->
 <div id="screen-login" class="card hidden">
   <h2>🔑 Подключение</h2>
   <input type="text" id="inp-room" placeholder="Код комнаты (напр. WARS1)" value="WARS1">
-  <input type="password" id="inp-password" placeholder="Пароль администратора (только для Мастера)" class="hidden">
-  <input type="text" id="inp-name" placeholder="Название вашей страны" class="hidden">
-  <button class="btn btn-green" onclick="window.connect()">ВОЙТИ</button>
+  <input type="text" id="inp-name" placeholder="Название страны" class="hidden" id="name-field">
+  <button class="btn btn-green" onclick="connect()">ВОЙТИ</button>
 </div>
 
 <!-- ИНТЕРФЕЙС ИГРОКА -->
@@ -200,574 +235,605 @@
   <div class="stat-row"><span>❤️ Жизни</span> <span class="stat-val stat-lives" id="p-lives">3</span></div>
   <div class="stat-row"><span>☢️ Ядерные боеголовки</span> <span class="stat-val stat-ya" id="p-ya">1</span></div>
   <div class="stat-row"><span>🛡️ Противоракеты (ПРО)</span> <span class="stat-val stat-pro" id="p-pro">1</span></div>
-  
   <div id="p-ii-info" class="hidden" style="margin-top:8px; padding:6px; background:var(--panel2); border-radius:6px;">
     <span id="p-ii-tag" class="tag">ИИ: -</span>
     <span id="p-ii-status" style="margin-left:8px; font-size:0.85rem;"></span>
   </div>
 
   <div id="p-phase-planning" class="hidden">
-    <h3>📋 Фаза планирования — Раунд <span class="current-round">1</span></h3>
+    <h3>📋 Фаза планирования — Раунд <span id="p-round">1</span></h3>
 
-    <!-- Кнопка Скрытого режима -->
+    <!-- Скрытый режим -->
     <div id="p-stealth-block" style="margin-bottom:12px;">
-      <button class="btn btn-purple btn-sm" id="btn-stealth" onclick="window.activateStealth()">🥷 Войти в скрытый режим</button>
+      <button class="btn btn-purple btn-sm" id="btn-stealth">🥷 Войти в скрытый режим</button>
       <div id="p-stealth-info" class="hidden" style="font-size:0.8rem; color:var(--purple); margin-top:4px;">
-        Скрытый режим активен. Минимальный блок выхода: <span id="p-stealth-left">4</span> раунд(ов)
+        Скрытый режим активен. Осталось раундов: <span id="p-stealth-left">4</span>
       </div>
     </div>
 
-    <!-- Производство (фиксированное визуальное решение) -->
-    <label style="font-weight:700;">🏭 Выберите производство на раунд:</label>
-    <div class="radio-grid" id="prod-choices" style="margin: 10px 0;">
-      <div class="radio-card" id="card-prod-pro" onclick="window.selectProd('pro')">
+    <!-- Производство (обязательное) -->
+    <label style="font-weight:700;">🏭 Производство (обязательно):</label>
+    <div class="radio-grid" id="prod-choices">
+      <div class="radio-card" data-prod="pro" onclick="selectProd('pro')">
         <div class="emoji">🛡️</div>
         <div><strong>ПРО</strong></div>
-        <div style="font-size:1.1rem; color:var(--green); font-weight:bold;">+<span id="prod-pro-amount">1</span> ракет</div>
+        <div style="font-size:0.8rem; color:var(--dim);">+<span id="prod-pro-amount">1</span></div>
       </div>
-      <div class="radio-card" id="card-prod-ya" onclick="window.selectProd('ya')">
+      <div class="radio-card" data-prod="ya" onclick="selectProd('ya')">
         <div class="emoji">☢️</div>
         <div><strong>ЯБ</strong></div>
-        <div style="font-size:1.1rem; color:var(--yellow); font-weight:bold;">+<span id="prod-ya-amount">1</span> ракет</div>
+        <div style="font-size:0.8rem; color:var(--dim);">+<span id="prod-ya-amount">1</span></div>
       </div>
     </div>
 
     <!-- Удар (опционально) -->
-    <label style="font-weight:700; margin-top:14px; display:block;">💥 Нанести ядерный удар (опционально):</label>
-    <select id="p-target" onchange="window.onTargetChange()">
+    <label style="font-weight:700; margin-top:14px; display:block;">💥 Ядерный удар (опционально):</label>
+    <select id="p-target">
       <option value="none">— Без атаки —</option>
     </select>
-    
-    <div id="p-strike-settings" class="hidden">
-      <label style="font-size:0.85rem; color:var(--dim);">Укажите количество ЯБ для залпа:</label>
-      <input type="range" id="p-ya-count" min="0" max="1" value="0" step="1" oninput="document.getElementById('p-ya-count-val').innerText=this.value">
-      <span id="p-ya-count-val" style="font-weight:700; font-size:1.2rem;">0</span>
-    </div>
+    <label style="font-size:0.85rem; color:var(--dim);">Количество боеголовок для залпа:</label>
+    <input type="range" id="p-ya-count" min="0" max="0" value="0" step="1" oninput="document.getElementById('p-ya-count-val').innerText=this.value">
+    <span id="p-ya-count-val" style="font-weight:700; font-size:1.2rem;">0</span>
 
-    <button class="btn btn-red" id="btn-submit" onclick="window.submitTurn()">✅ ПОДТВЕРДИТЬ ХОД</button>
+    <button class="btn btn-red" id="btn-submit">✅ ПОДТВЕРДИТЬ ХОД</button>
   </div>
 
   <div id="p-phase-wait" class="hidden">
-    <h3 class="pulse" style="color: var(--blue)">⏳ Ход передан. Ожидайте окончания раунда...</h3>
+    <h3 class="pulse">⏳ Ожидание других игроков...</h3>
   </div>
 
-  <!-- Огромный арсенал -->
-  <button class="btn btn-yellow hidden" id="btn-arsenal" onclick="window.claimArsenal()">
+  <!-- Кнопка тайного арсенала -->
+  <button class="btn btn-yellow hidden" id="btn-arsenal" style="margin-top:16px;">
     🚀 Вы знаете о тайном запасе списанного арсенала. Успеть забрать арсенал себе!
   </button>
   <div id="p-arsenal-info" class="hidden" style="margin-top:8px; padding:8px; background:#332b00; border-radius:6px; font-size:0.9rem;">
-    ⚠️ Арсенал забран: +2 ПРО, +5 ЯБ. В конце 6-го раунда произойдет взрыв на выбранной территории.
+    ⚠️ Арсенал получен: +2 ПРО, +5 ЯБ. Эти 5 ЯБ взорвутся в конце 6-го раунда на территории выбранной вами страны.
   </div>
 </div>
 
 <!-- ИНТЕРФЕЙС МАСТЕРА -->
 <div id="ui-master" class="card hidden">
-  <h2>🎓 Панель Мастера (Комната: <span id="m-room-id">...</span>)</h2>
-  <p>Раунд: <strong class="current-round">1</strong> | Фаза: <strong id="m-phase">лобби</strong></p>
-  
-  <div id="m-controls" style="margin: 15px 0;">
-    <button class="btn btn-green" id="m-btn-start" onclick="window.masterStartGame()">🚀 Начать игру</button>
-    <button class="btn btn-blue hidden" id="m-btn-resolve" onclick="window.masterResolveTurns()">⚔️ Перейти к разрешению ударов</button>
-    <button class="btn btn-orange hidden" id="m-btn-next" onclick="window.masterNextRound()">⏭️ Начать следующий раунд</button>
+  <h2>🎓 Панель Мастера</h2>
+  <p>Комната: <strong id="m-room">-</strong> | Раунд: <strong id="m-round">1</strong> | Фаза: <strong id="m-phase">лобби</strong></p>
+  <div id="m-controls">
+    <button class="btn btn-green" id="m-btn-start">🚀 Начать игру</button>
+    <button class="btn btn-blue hidden" id="m-btn-resolve">⚔️ Перейти к разрешению ударов</button>
+    <button class="btn btn-orange hidden" id="m-btn-next">⏭️ Следующий раунд</button>
   </div>
-
-  <!-- Панель загрузки аудио через GitHub -->
-  <div id="m-audio-panel" class="hidden" style="background: var(--panel2); padding: 12px; border-radius: 8px; margin-top: 15px;">
-    <h3>🎵 Настройка звуков из вашего GitHub</h3>
-    <label>Фоновая музыка (имя файла):</label>
-    <input type="text" id="cfg-sound-bg" placeholder="soundtrack.mp3">
-    <label>Звук ядерного удара:</label>
-    <input type="text" id="cfg-sound-strike" placeholder="strike.mp3">
-    <label>Звук бунта ИИ:</label>
-    <input type="text" id="cfg-sound-rebel" placeholder="rebellion.mp3">
-    <button class="btn btn-sm btn-green" onclick="window.saveSoundConfig()">Применить плейлист</button>
-  </div>
-
-  <div id="m-resolution" class="hidden" style="margin-top:20px;">
-    <h3>💥 Разрешение ударов и броски ПРО:</h3>
+  <div id="m-resolution" class="hidden" style="margin-top:14px;">
+    <h3>💥 Очерёдность ударов (по убыванию):</h3>
     <div id="m-attack-queue"></div>
-    
-    <!-- Интерактивная дуэль d20 -->
-    <div id="m-dice-panel" class="hidden" style="margin-top:12px; padding:12px; background:var(--panel2); border-radius:8px; border: 1px solid var(--blue);">
-      <h4>🎲 Ручной ввод броска d20</h4>
-      <p>Атакует: <strong id="m-dice-attacker">...</strong> → Защищается: <strong id="m-dice-target">...</strong></p>
-      <p>Ракета #<span id="m-dice-wh-num">1</span> | Попытка перехвата ПРО #<span id="m-dice-pro-num">1</span></p>
-      <p>Успешный диапазон для d20: <strong id="m-dice-needed" style="color:var(--green)">3-20</strong></p>
-      
-      <input type="number" id="m-dice-input" placeholder="Введите выпавшее на d20" min="1" max="20">
-      <button class="btn btn-sm btn-blue" onclick="window.applyDiceRoll()">🎲 Подтвердить бросок d20</button>
-      <button class="btn btn-sm" style="background:#555;" onclick="window.skipInterceptor()">⏭️ Пропустить (урон принят)</button>
+    <div id="m-dice-panel" class="hidden" style="margin-top:12px; padding:12px; background:var(--panel2); border-radius:8px;">
+      <h4>🎲 Бросок ПРО</h4>
+      <p>Атака: <span id="m-dice-attacker"></span> → <span id="m-dice-target"></span></p>
+      <p>Боеголовка #<span id="m-dice-wh-num">1</span> | Попытка ПРО #<span id="m-dice-pro-num">1</span></p>
+      <p>Требуемый бросок: <strong id="m-dice-needed">3-20</strong></p>
+      <input type="number" id="m-dice-input" placeholder="Результат броска d20 (1-20)" min="1" max="20">
+      <button class="btn btn-sm btn-blue" onclick="resolveDiceRoll()">🎲 Применить бросок</button>
+      <button class="btn btn-sm" style="background:#555;" onclick="skipInterceptor()">⏭️ Пропустить (дать упасть)</button>
+      <p style="font-size:0.8rem; color:var(--dim); margin-top:6px;" id="m-dice-info"></p>
     </div>
-    <div id="m-dice-log" style="margin-top:15px; background: var(--bg); padding:10px; border-radius:6px; font-size:0.9rem; max-height: 150px; overflow-y: auto;"></div>
+    <div id="m-dice-log" style="margin-top:10px; font-size:0.85rem;"></div>
   </div>
 </div>
 
-<!-- ОБЩИЙ ЭКРАН -->
+<!-- ЭКРАН -->
 <div id="ui-screen" class="card hidden" style="text-align:center;">
-  <h1 style="font-size:2rem; letter-spacing:3px; color:var(--red);">🌐 КАРТА МИРА "=Военный мир"</h1>
-  <h2>Раунд: <span class="current-round">1</span> | ☄️ Астероид: <span id="s-asteroid" style="color:var(--orange);">—</span></h2>
+  <h1 style="font-size:2rem; letter-spacing:3px;">🌐 КАРТА МИРА</h1>
+  <h2>Раунд: <span id="s-round">1</span> | ☄️ Астероид: <span id="s-asteroid" style="color:var(--orange);">—</span></h2>
   <div id="s-players" style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center; margin-top:18px;"></div>
 </div>
 
-<!-- ТЕГИ ИМПОРТОВ FIREBASE ИЗ ВАШЕЙ КОНСОЛИ -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+<script>
+// ==================== ГЛОБАЛЬНОЕ СОСТОЯНИЕ ====================
+let ROLE = ''; // player / master / screen
+let ROOM = '';
+let PLAYER_NAME = '';
+let PLAYER_ID = 'p_' + Math.random().toString(36).substr(2, 9);
 
-  // Ваши учетные данные для проекта wars-world-b963a
-  const firebaseConfig = {
-    projectId: "wars-world-b963a",
-    databaseURL: "https://wars-world-b963a-default-rtdb.firebaseio.com"
-  };
+// Симуляция базы данных (в памяти)
+let DB = {
+  state: 'lobby', // lobby | planning | resolution
+  round: 1,
+  asteroidHp: 999, // появится на 6 раунде
+  players: {},
+  giftTakenBy: null, // кто забрал арсенал
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+// Локальное состояние игрока
+let myProdChoice = null; // 'pro' | 'ya'
 
-  // Переменные клиента
-  let myRole = '';
-  let roomId = 'WARS1';
-  let playerId = localStorage.getItem('playerId') || 'p_' + Math.random().toString(36).substr(2, 9);
-  localStorage.setItem('playerId', playerId);
-  let pProdChoice = null;
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+function getPlayer(id) { return DB.players[id]; }
+function getMe() { return DB.players[PLAYER_ID]; }
+function alivePlayers() {
+  let arr = [];
+  for (let id in DB.players) if (DB.players[id].lives > 0) arr.push(DB.players[id]);
+  return arr;
+}
 
-  // Логика очередей Мастера
-  let attackQueue = [];
-  let currentAttack = null;
+// Расчёт прироста ракет для игрока
+function calcProduction(player) {
+  let base = 1;
+  if (player.stealthActive) base += 2;
+  if (player.iiType === 'moderate') base += 2;
+  if (player.iiType === 'unrestrained') base += 4;
+  return base;
+}
 
-  // Аудиосистема с получением звуков из GitHub
-  let audioSources = {};
-  let currentPlayingBg = null;
+function updateAllUI() {
+  if (ROLE === 'player') updatePlayerUI();
+  if (ROLE === 'master') updateMasterUI();
+  if (ROLE === 'screen') updateScreenUI();
+}
 
-  // ОБЯЗАТЕЛЬНО ПРИВЯЗЫВАЕМ ФУНКЦИИ К WINDOW, ЧТОБЫ ОНИ БЫЛИ КЛИКАТЕЛЬНЫ В HTML
-  window.setRole = function(role) {
-    myRole = role;
-    document.getElementById('screen-role').classList.add('hidden');
-    document.getElementById('screen-login').classList.remove('hidden');
-    if (role === 'player') {
-      document.getElementById('inp-name').classList.remove('hidden');
-      document.getElementById('inp-password').classList.add('hidden');
-    } else if (role === 'master') {
-      document.getElementById('inp-name').classList.add('hidden');
-      document.getElementById('inp-password').classList.remove('hidden');
-    } else {
-      document.getElementById('inp-name').classList.add('hidden');
-      document.getElementById('inp-password').classList.add('hidden');
+// ==================== ВЫБОР РОЛИ ====================
+function setRole(role) {
+  ROLE = role;
+  document.getElementById('screen-role').classList.add('hidden');
+  document.getElementById('screen-login').classList.remove('hidden');
+  if (role === 'player') {
+    document.getElementById('name-field').classList.remove('hidden');
+    document.getElementById('inp-name').classList.remove('hidden');
+  }
+}
+
+// ==================== ПОДКЛЮЧЕНИЕ ====================
+function connect() {
+  ROOM = document.getElementById('inp-room').value.trim().toUpperCase() || 'WARS1';
+  PLAYER_NAME = document.getElementById('inp-name').value.trim() || 'Страна';
+  document.getElementById('screen-login').classList.add('hidden');
+
+  if (ROLE === 'player') {
+    document.getElementById('ui-player').classList.remove('hidden');
+    document.getElementById('p-name').innerText = PLAYER_NAME;
+    if (!DB.players[PLAYER_ID]) {
+      DB.players[PLAYER_ID] = {
+        id: PLAYER_ID,
+        name: PLAYER_NAME,
+        lives: 3,
+        ya: 1,
+        pro: 1,
+        stealthActive: false,
+        stealthRoundsLeft: 0,
+        iiType: null, // 'moderate' | 'unrestrained' | null
+        iiFriendly: null, // true/false для безудержного
+        hasTurn: false,
+        action: null,
+      };
     }
-  };
+    updatePlayerUI();
+  } else if (ROLE === 'master') {
+    document.getElementById('ui-master').classList.remove('hidden');
+    document.getElementById('m-room').innerText = ROOM;
+    updateMasterUI();
+  } else if (ROLE === 'screen') {
+    document.getElementById('ui-screen').classList.remove('hidden');
+    updateScreenUI();
+  }
+}
 
-  window.connect = function() {
-    roomId = document.getElementById('inp-room').value.trim().toUpperCase() || 'WARS1';
-    const nameInput = document.getElementById('inp-name').value.trim();
-    const passInput = document.getElementById('inp-password').value.trim();
+// ==================== ИНТЕРФЕЙС ИГРОКА ====================
+function updatePlayerUI() {
+  const me = getMe();
+  if (!me) return;
 
-    document.getElementById('screen-login').classList.add('hidden');
+  document.getElementById('p-lives').innerText = me.lives;
+  document.getElementById('p-ya').innerText = me.ya;
+  document.getElementById('p-pro').innerText = me.pro;
+  document.getElementById('p-round').innerText = DB.round;
 
-    if (myRole === 'player') {
-      if (!nameInput) return alert('Введите название страны!');
-      document.getElementById('ui-player').classList.remove('hidden');
-      document.getElementById('p-name').innerText = nameInput;
-      initializePlayerInDb(nameInput);
-    } else if (myRole === 'master') {
-      if (passInput !== 'Ron') {
-        alert('Неверный пароль администратора!');
-        window.setRole('master');
-        return;
-      }
-      document.getElementById('ui-master').classList.remove('hidden');
-      document.getElementById('m-room-id').innerText = roomId;
-      document.getElementById('m-audio-panel').classList.remove('hidden');
-      initializeRoomInDb();
-    } else if (myRole === 'screen') {
-      document.getElementById('ui-screen').classList.remove('hidden');
-      listenToRoom();
-    }
-  };
+  // Скрытый режим
+  const stealthTag = document.getElementById('p-stealth-tag');
+  const stealthBlock = document.getElementById('p-stealth-block');
+  const stealthInfo = document.getElementById('p-stealth-info');
+  const btnStealth = document.getElementById('btn-stealth');
+  const stealthLeft = document.getElementById('p-stealth-left');
 
-  function initializePlayerInDb(name) {
-    const playerRef = ref(db, `rooms/${roomId}/players/${playerId}`);
-    update(playerRef, {
-      id: playerId,
-      name: name,
-      lives: 3,
-      ya: 1,
-      pro: 1,
-      stealthActive: false,
-      stealthRoundsLeft: 0,
-      iiType: null,
-      iiFriendly: null,
-      hasTurn: false
-    }).then(() => {
-      listenToRoom();
-    });
+  if (me.stealthActive) {
+    stealthTag.classList.remove('hidden');
+    stealthInfo.classList.remove('hidden');
+    btnStealth.classList.add('hidden');
+    stealthLeft.innerText = me.stealthRoundsLeft;
+  } else {
+    stealthTag.classList.add('hidden');
+    stealthInfo.classList.add('hidden');
+    btnStealth.classList.remove('hidden');
+    if (DB.round < 2) btnStealth.classList.add('hidden');
   }
 
-  function initializeRoomInDb() {
-    const roomRef = ref(db, `rooms/${roomId}`);
-    get(roomRef).then((snapshot) => {
-      if (!snapshot.exists()) {
-        set(roomRef, {
-          state: 'lobby',
-          round: 1,
-          asteroidHp: 999,
-          giftTakenBy: null
-        });
-      }
-      listenToRoom();
-    });
-  }
-
-  function listenToRoom() {
-    onValue(ref(db, `rooms/${roomId}`), (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
-
-      // Обновление раунда для всех
-      const round = data.round || 1;
-      document.querySelectorAll('.current-round').forEach(el => el.innerText = round);
-
-      // Синхронизация звуковых треков по путям с GitHub
-      if (data.sounds) {
-        audioSources = data.sounds;
-        playBackgroundMusic();
-      }
-
-      if (myRole === 'player') handlePlayerSync(data);
-      if (myRole === 'master') handleMasterSync(data);
-      if (myRole === 'screen') handleScreenSync(data);
-    });
-  }
-
-  // --- ЛОГИКА ИГРОКА ---
-  function handlePlayerSync(data) {
-    const me = data.players ? data.players[playerId] : null;
-    if (!me) return;
-
-    document.getElementById('p-lives').innerText = me.lives;
-    document.getElementById('p-ya').innerText = me.ya;
-    document.getElementById('p-pro').innerText = me.pro;
-
-    // Скрытый режим
-    const stealthTag = document.getElementById('p-stealth-tag');
-    const stealthBlock = document.getElementById('p-stealth-block');
-    const stealthInfo = document.getElementById('p-stealth-info');
-    const btnStealth = document.getElementById('btn-stealth');
-    const stealthLeft = document.getElementById('p-stealth-left');
-
-    if (me.stealthActive) {
-      stealthTag.classList.remove('hidden');
-      stealthInfo.classList.remove('hidden');
-      btnStealth.classList.add('hidden');
-      stealthLeft.innerText = me.stealthRoundsLeft;
+  // ИИ инфо
+  const iiInfo = document.getElementById('p-ii-info');
+  const iiTag = document.getElementById('p-ii-tag');
+  const iiStatus = document.getElementById('p-ii-status');
+  if (me.iiType) {
+    iiInfo.classList.remove('hidden');
+    iiTag.innerText = me.iiType === 'moderate' ? 'ИИ: Умеренный' : 'ИИ: Безудержный';
+    iiTag.className = 'tag ' + (me.iiType === 'moderate' ? 'tag-green' : 'tag-red');
+    if (me.iiType === 'unrestrained' && me.iiFriendly !== null) {
+      iiStatus.innerText = me.iiFriendly ? '(Дружественный)' : '(Опасный)';
     } else {
-      stealthTag.classList.add('hidden');
-      stealthInfo.classList.add('hidden');
-      btnStealth.classList.remove('hidden');
-      if (data.round < 2) btnStealth.classList.add('hidden');
+      iiStatus.innerText = '';
     }
+  } else {
+    iiInfo.classList.add('hidden');
+  }
 
-    // Автоматический расчет фиксированного производства
-    const prodProAmount = document.getElementById('prod-pro-amount');
-    const prodYaAmount = document.getElementById('prod-ya-amount');
-    const calculatedAmount = calcProductionAmount(me);
-    prodProAmount.innerText = calculatedAmount;
-    prodYaAmount.innerText = calculatedAmount;
-
-    // Смена фаз
-    const planDiv = document.getElementById('p-phase-planning');
-    const waitDiv = document.getElementById('p-phase-wait');
-
-    if (data.state === 'planning') {
-      if (me.hasTurn) {
-        planDiv.classList.add('hidden');
-        waitDiv.classList.remove('hidden');
-      } else {
-        planDiv.classList.remove('hidden');
-        waitDiv.classList.add('hidden');
-        rebuildTargetsDropdown(data, me);
-      }
-    } else {
+  // Фазы
+  const planDiv = document.getElementById('p-phase-planning');
+  const waitDiv = document.getElementById('p-phase-wait');
+  if (DB.state === 'planning') {
+    if (me.hasTurn) {
       planDiv.classList.add('hidden');
+      waitDiv.classList.remove('hidden');
+    } else {
+      planDiv.classList.remove('hidden');
       waitDiv.classList.add('hidden');
+      updateProdCards();
+      updateTargetsList();
+      updateYaSlider();
     }
-
-    // Выбор ИИ в конце 3 раунда
-    if (data.round === 3 && data.state === 'planning' && !me.hasTurn && !me.iiType) {
-      showIIChoiceModal();
-    }
-
-    // Арсенал
-    const btnArsenal = document.getElementById('btn-arsenal');
-    const arsenalInfo = document.getElementById('p-arsenal-info');
-    if (!data.giftTakenBy) {
-      btnArsenal.classList.remove('hidden');
-      arsenalInfo.classList.add('hidden');
-    } else if (data.giftTakenBy === playerId) {
-      btnArsenal.classList.add('hidden');
-      arsenalInfo.classList.remove('hidden');
-    } else {
-      btnArsenal.classList.add('hidden');
-      arsenalInfo.classList.add('hidden');
-    }
+  } else {
+    planDiv.classList.add('hidden');
+    waitDiv.classList.add('hidden');
   }
 
-  function calcProductionAmount(player) {
-    let amt = 1; // Сток
-    if (player.stealthActive) amt += 2;
-    if (player.iiType === 'moderate') amt += 2;
-    if (player.iiType === 'unrestrained') amt += 4;
-    return amt;
+  // Арсенал
+  const btnArsenal = document.getElementById('btn-arsenal');
+  const arsenalInfo = document.getElementById('p-arsenal-info');
+  if (DB.giftTakenBy === null) {
+    btnArsenal.classList.remove('hidden');
+  } else if (DB.giftTakenBy === PLAYER_ID) {
+    btnArsenal.classList.add('hidden');
+    arsenalInfo.classList.remove('hidden');
+  } else {
+    btnArsenal.classList.add('hidden');
   }
 
-  window.selectProd = function(type) {
-    pProdChoice = type;
-    document.getElementById('card-prod-pro').classList.remove('selected');
-    document.getElementById('card-prod-ya').classList.remove('selected');
-    document.getElementById('card-prod-' + type).classList.add('selected');
-  };
+  // Выбор ИИ в конце 3 раунда
+  if (DB.round === 3 && DB.state === 'planning' && !me.hasTurn && !me.iiType) {
+    showIIChoice();
+  }
+}
 
-  window.activateStealth = function() {
-    update(ref(db, `rooms/${roomId}/players/${playerId}`), {
-      stealthActive: true,
-      stealthRoundsLeft: 4
-    });
-  };
+function updateProdCards() {
+  const me = getMe();
+  const amount = calcProduction(me);
+  document.getElementById('prod-pro-amount').innerText = amount;
+  document.getElementById('prod-ya-amount').innerText = amount;
+}
 
-  window.claimArsenal = function() {
-    get(ref(db, `rooms/${roomId}/giftTakenBy`)).then((snap) => {
-      if (!snap.exists() || !snap.val()) {
-        const updates = {};
-        updates[`rooms/${roomId}/giftTakenBy`] = playerId;
-        update(ref(db), updates).then(() => {
-          // Выдаем 2 ПРО и 5 ЯБ
-          get(ref(db, `rooms/${roomId}/players/${playerId}`)).then((pSnap) => {
-            const p = pSnap.val();
-            update(ref(db, `rooms/${roomId}/players/${playerId}`), {
-              pro: (p.pro || 1) + 2,
-              ya: (p.ya || 1) + 5
-            });
-          });
-        });
-      }
-    });
-  };
+function selectProd(type) {
+  myProdChoice = type;
+  document.querySelectorAll('#prod-choices .radio-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`#prod-choices .radio-card[data-prod="${type}"]`).classList.add('selected');
+}
 
-  function rebuildTargetsDropdown(data, me) {
-    const sel = document.getElementById('p-target');
-    sel.innerHTML = '<option value="none">— Без атаки —</option>';
-    if (data.round >= 6 && data.asteroidHp > 0) {
-      sel.innerHTML += '<option value="asteroid">☄️ Астероид</option>';
-    }
-    for (let id in data.players) {
-      if (id !== playerId && data.players[id].lives > 0) {
-        sel.innerHTML += `<option value="${id}">${data.players[id].name}</option>`;
-      }
+function updateTargetsList() {
+  const sel = document.getElementById('p-target');
+  sel.innerHTML = '<option value="none">— Без атаки —</option>';
+  if (DB.round >= 6 && DB.asteroidHp > 0) {
+    sel.innerHTML += '<option value="asteroid">☄️ Астероид</option>';
+  }
+  for (let id in DB.players) {
+    if (id !== PLAYER_ID && DB.players[id].lives > 0) {
+      sel.innerHTML += `<option value="${id}">${DB.players[id].name}</option>`;
     }
   }
+}
 
-  window.onTargetChange = function() {
-    const target = document.getElementById('p-target').value;
-    const strikeSettings = document.getElementById('p-strike-settings');
-    const range = document.getElementById('p-ya-count');
+function updateYaSlider() {
+  const me = getMe();
+  const slider = document.getElementById('p-ya-count');
+  slider.max = me.ya;
+  if (parseInt(slider.value) > me.ya) slider.value = me.ya;
+  document.getElementById('p-ya-count-val').innerText = slider.value;
+}
 
-    if (target === 'none') {
-      strikeSettings.classList.add('hidden');
-    } else {
-      strikeSettings.classList.remove('hidden');
-      get(ref(db, `rooms/${roomId}/players/${playerId}/ya`)).then(snap => {
-        const totalYa = snap.val() || 0;
-        range.max = totalYa;
-        range.value = 0;
-        document.getElementById('p-ya-count-val').innerText = '0';
-      });
-    }
-  };
+// Выбор ИИ
+function showIIChoice() {
+  const div = document.createElement('div');
+  div.id = 'ii-choice-modal';
+  div.className = 'modal-overlay';
+  div.innerHTML = `
+    <div class="modal">
+      <h3>🤖 Искусственный интеллект</h3>
+      <p>Человечество создало ИИ. Выберите путь:</p>
+      <button class="btn btn-green btn-sm" id="ii-moderate">🛡️ Умеренное развитие (+2 ракеты/раунд, безопасно)</button>
+      <button class="btn btn-red btn-sm" id="ii-unrestrained">💀 Безудержное развитие (+4 ракеты/раунд, риск бунта)</button>
+    </div>`;
+  document.body.appendChild(div);
+  document.getElementById('ii-moderate').onclick = () => { getMe().iiType = 'moderate'; div.remove(); updateAllUI(); };
+  document.getElementById('ii-unrestrained').onclick = () => { getMe().iiType = 'unrestrained'; div.remove(); updateAllUI(); };
+}
 
-  window.submitTurn = function() {
-    if (!pProdChoice) return alert('Выберите производство ПРО или ЯБ!');
-    const target = document.getElementById('p-target').value;
-    const yaSpent = parseInt(document.getElementById('p-ya-count').value) || 0;
+// Скрытый режим
+document.getElementById('btn-stealth').onclick = () => {
+  const me = getMe();
+  me.stealthActive = true;
+  me.stealthRoundsLeft = 4;
+  updateAllUI();
+};
 
-    if (target !== 'none' && yaSpent <= 0) return alert('Укажите количество ракет для ядерного удара!');
-
-    update(ref(db, `rooms/${roomId}/players/${playerId}`), {
-      hasTurn: true,
-      action: {
-        production: pProdChoice,
-        target: target,
-        yaSpent: yaSpent
-      }
-    }).then(() => {
-      pProdChoice = null;
-      document.getElementById('card-prod-pro').classList.remove('selected');
-      document.getElementById('card-prod-ya').classList.remove('selected');
-    });
-  };
-
-  function showIIChoiceModal() {
-    const div = document.createElement('div');
-    div.id = 'ii-modal-overlay';
-    div.className = 'modal-overlay';
-    div.innerHTML = `
-      <div class="modal">
-        <h3>🤖 ВЫБОР МОДЕЛИ ИИ</h3>
-        <p>Конец 3-го раунда. Выберите модель развития искусственного интеллекта:</p>
-        <button class="btn btn-green" onclick="window.confirmIIChoice('moderate', 'ii-modal-overlay')">🛡️ Умеренное развитие (+2 ракеты/раунд, безопасно)</button>
-        <button class="btn btn-red" onclick="window.confirmIIChoice('unrestrained', 'ii-modal-overlay')">💀 Безудержное развитие (+4 ракеты/раунд, риск бунта)</button>
-      </div>`;
-    document.body.appendChild(div);
+// Арсенал
+document.getElementById('btn-arsenal').onclick = () => {
+  if (DB.giftTakenBy === null) {
+    DB.giftTakenBy = PLAYER_ID;
+    const me = getMe();
+    me.pro += 2;
+    me.ya += 5;
+    me.giftArsenal = true; // пометка
+    updateAllUI();
   }
+};
 
-  window.confirmIIChoice = function(type, modalId) {
-    update(ref(db, `rooms/${roomId}/players/${playerId}`), {
-      iiType: type
-    }).then(() => {
-      const modal = document.getElementById(modalId);
-      if (modal) modal.remove();
-    });
+// Подтверждение хода
+document.getElementById('btn-submit').onclick = () => {
+  const me = getMe();
+  if (!myProdChoice) return alert('Выберите производство!');
+  const target = document.getElementById('p-target').value;
+  const yaSpent = parseInt(document.getElementById('p-ya-count').value) || 0;
+
+  if (target !== 'none' && yaSpent <= 0) return alert('Укажите количество боеголовок для удара!');
+  if (yaSpent > me.ya) return alert('Недостаточно боеголовок!');
+
+  me.hasTurn = true;
+  me.action = {
+    production: myProdChoice,
+    target: target,
+    yaSpent: yaSpent,
   };
+  updateAllUI();
+};
 
-  // --- ЛОГИКА ВЕДУЩЕГО ---
-  function handleMasterSync(data) {
-    document.getElementById('m-phase').innerText = data.state;
+// ==================== ИНТЕРФЕЙС МАСТЕРА ====================
+function updateMasterUI() {
+  document.getElementById('m-round').innerText = DB.round;
+  document.getElementById('m-phase').innerText = DB.state;
 
-    const btnStart = document.getElementById('m-btn-start');
-    const btnResolve = document.getElementById('m-btn-resolve');
-    const btnNext = document.getElementById('m-btn-next');
-    const resPanel = document.getElementById('m-resolution');
+  const btnStart = document.getElementById('m-btn-start');
+  const btnResolve = document.getElementById('m-btn-resolve');
+  const btnNext = document.getElementById('m-btn-next');
+  const resPanel = document.getElementById('m-resolution');
 
-    btnStart.classList.add('hidden');
-    btnResolve.classList.add('hidden');
-    btnNext.classList.add('hidden');
+  btnStart.classList.add('hidden');
+  btnResolve.classList.add('hidden');
+  btnNext.classList.add('hidden');
 
-    if (data.state === 'lobby') btnStart.classList.remove('hidden');
-    if (data.state === 'planning') btnResolve.classList.remove('hidden');
-    if (data.state === 'resolution') {
-      btnNext.classList.remove('hidden');
-      resPanel.classList.remove('hidden');
-    } else {
-      resPanel.classList.add('hidden');
+  if (DB.state === 'lobby') btnStart.classList.remove('hidden');
+  if (DB.state === 'planning') btnResolve.classList.remove('hidden');
+  if (DB.state === 'resolution') { btnNext.classList.remove('hidden'); buildAttackQueue(); }
+}
+
+document.getElementById('m-btn-start').onclick = () => {
+  DB.state = 'planning';
+  DB.round = 1;
+  // Сброс ходов
+  for (let id in DB.players) DB.players[id].hasTurn = false;
+  updateAllUI();
+};
+
+document.getElementById('m-btn-resolve').onclick = () => {
+  DB.state = 'resolution';
+  updateAllUI();
+};
+
+// ==================== ОЧЕРЁДНОСТЬ УДАРОВ ====================
+let attackQueue = []; // [{attackerId, targetId, yaSpent, whIndex:0, proAttempt:0}]
+let currentAttack = null;
+
+function buildAttackQueue() {
+  const div = document.getElementById('m-attack-queue');
+  attackQueue = [];
+  let attacks = [];
+
+  for (let id in DB.players) {
+    const p = DB.players[id];
+    if (p.action && p.action.target !== 'none' && p.action.yaSpent > 0 && p.lives > 0) {
+      attacks.push({ attackerId: id, targetId: p.action.target, yaSpent: p.action.yaSpent });
     }
   }
+  // Сортировка по убыванию yaSpent
+  attacks.sort((a, b) => b.yaSpent - a.yaSpent);
 
-  window.masterStartGame = function() {
-    update(ref(db, `rooms/${roomId}`), {
-      state: 'planning',
-      round: 1,
-      asteroidHp: 999
-    });
-  };
-
-  window.masterResolveTurns = function() {
-    update(ref(db, `rooms/${roomId}`), {
-      state: 'resolution'
-    }).then(() => {
-      buildAttackQueue();
-    });
-  };
-
-  function buildAttackQueue() {
-    get(ref(db, `rooms/${roomId}`)).then((snap) => {
-      const data = snap.val();
-      const div = document.getElementById('m-attack-queue');
-      div.innerHTML = '';
-      attackQueue = [];
-
-      let attacks = [];
-      for (let id in data.players) {
-        const p = data.players[id];
-        if (p.action && p.action.target !== 'none' && p.action.yaSpent > 0 && p.lives > 0) {
-          attacks.push({ attackerId: id, targetId: p.action.target, yaSpent: p.action.yaSpent });
-        }
-      }
-
-      // Сортировка по убыванию количества боеголовок
-      attacks.sort((a, b) => b.yaSpent - a.yaSpent);
-
-      // Разворачиваем в плоскую очередь для последовательного d20 перехвата
-      attacks.forEach(atk => {
-        for (let i = 0; i < atk.yaSpent; i++) {
-          attackQueue.push({ ...atk, whIndex: i, proAttempt: 0 });
-        }
-      });
-
-      if (attacks.length === 0) {
-        div.innerHTML = '<p>Нет запланированных ударов в этом раунде.</p>';
-      } else {
-        attacks.forEach(atk => {
-          const attacker = data.players[atk.attackerId];
-          const targetName = atk.targetId === 'asteroid' ? 'Астероид' : data.players[atk.targetId]?.name || '?';
-          div.innerHTML += `<div class="attack-item">⚡ ${attacker.name} наносит удар по ${targetName} (${atk.yaSpent} ЯБ)</div>`;
-        });
-      }
-
-      processNextQueuedAttack();
-    });
-  }
-
-  function processNextQueuedAttack() {
-    if (attackQueue.length === 0) {
-      document.getElementById('m-dice-panel').classList.add('hidden');
-      document.getElementById('m-dice-log').innerText += '\n🔥 Все ракетные дуэли в этом раунде завершены.';
-      return;
+  // Разворачиваем в очередь по боеголовкам
+  attacks.forEach(atk => {
+    for (let i = 0; i < atk.yaSpent; i++) {
+      attackQueue.push({ ...atk, whIndex: i, proAttempt: 0 });
     }
+  });
 
-    currentAttack = attackQueue[0];
-    const panel = document.getElementById('m-dice-panel');
-    panel.classList.remove('hidden');
+  div.innerHTML = attacks.length === 0 ? '<p>Нет атак в этом раунде.</p>' : '';
+  attacks.forEach(atk => {
+    const attacker = DB.players[atk.attackerId];
+    const targetName = atk.targetId === 'asteroid' ? 'Астероид' : DB.players[atk.targetId]?.name || '?';
+    div.innerHTML += `<div class="attack-item">${attacker.name} → ${targetName}: <strong>${atk.yaSpent} боеголовок</strong></div>`;
+  });
 
-    get(ref(db, `rooms/${roomId}`)).then((snap) => {
-      const data = snap.val();
-      const attackerName = data.players[currentAttack.attackerId].name;
-      const targetName = currentAttack.targetId === 'asteroid' ? 'Астероид' : data.players[currentAttack.targetId].name;
-
-      document.getElementById('m-dice-attacker').innerText = attackerName;
-      document.getElementById('m-dice-target').innerText = targetName;
-      document.getElementById('m-dice-wh-num').innerText = currentAttack.whIndex + 1;
-      document.getElementById('m-dice-pro-num').innerText = currentAttack.proAttempt + 1;
-
-      let neededText = '3-20';
-      if (currentAttack.targetId === 'asteroid') {
-        neededText = 'Гарантированное попадание (d20 не нужен)';
-        document.getElementById('m-dice-input').disabled = true;
-      } else {
-        document.getElementById('m-dice-input').disabled = false;
-        if (currentAttack.proAttempt > 0) {
-          let min = 15 + (currentAttack.proAttempt - 1);
-          if (min > 20) min = 20;
-          neededText = `${min}-20`;
-        }
-      }
-      document.getElementById('m-dice-needed').innerText = neededText;
-      document.getElementById('m-dice-input').value = '';
-    });
+  if (attackQueue.length > 0) {
+    processNextAttack();
   }
+}
 
-  window.applyDiceRoll = function() {
-    if (!currentAttack) return;
-    const rollValue = parseInt(document.getElementById('m-dice-input').value);
+function processNextAttack() {
+  if (attackQueue.length === 0) {
+    document.getElementById('m-dice-panel').classList.add('hidden');
+    document.getElementById('m-dice-log').innerText += '\n✅ Все атаки разрешены.';
+    return;
+  }
+  currentAttack = attackQueue[0];
+  const panel = document.getElementById('m-dice-panel');
+  panel.classList.remove('hidden');
 
-    if (currentAttack.targetId === 'asteroid') {
-      // Авто-попадание по астероиду
-      confirmHitOnTarget();
-      return;
-    }
+  const attacker = DB.players[currentAttack.attackerId];
+  const target = currentAttack.targetId === 'asteroid' ? { name: 'Астероид', pro: 0 } : DB.players[currentAttack.targetId];
 
-    if (isNaN(rollValue) || rollValue < 1 || rollValue > 20) return alert('Введите результат броска d20 (от 1 до 20)!');
+  document.getElementById('m-dice-attacker').innerText = attacker.name;
+  document.getElementById('m-dice-target').innerText = target.name;
+  document.getElementById('m-dice-wh-num').innerText = currentAttack.whIndex + 1;
+  document.getElementById('m-dice-pro-num').innerText = currentAttack.proAttempt + 1;
 
-    let success = false;
-    if (currentAttack.proAttempt === 0) {
-      success = (rollValue >= 3);
-    } else {
+  // Вычисляем нужный бросок
+  let needed;
+  if (currentAttack.targetId === 'asteroid') {
+    needed = 'авто (астероид)';
+    document.getElementById('m-dice-input').disabled = true;
+    document.getElementById('m-dice-needed').innerText = 'Автоматическое попадание';
+  } else {
+    if (currentAttack.proAttempt === 0) needed = '3-20';
+    else {
       let min = 15 + (currentAttack.proAttempt - 1);
       if (min > 20) min = 20;
-      success = (rollValue >= min);
+      needed = min + '-20';
     }
+    document.getElementById('m-dice-input').disabled = false;
+    document.getElementById('m-dice-needed').innerText = needed;
+  }
+  document.getElementById('m-dice-input').value = '';
+}
 
-    const log = document.getElementById('m-dice-log');
-    get(ref(db, `rooms/${roomId}/players/${currentAttack.targetId}`)).then((targetSnap) => {
-      const target = targetSnap.val();
-      if (success) {
-        log.innerText += `\n✅ d20: ${rollValue}. ПРО перехватила ракету #${currentAttack.whIndex + 1}!`;
-        // Списываем ПРО
-        update(ref(db, `rooms/${roomId}/players/${currentAttack.targetId}`), {
-          pro: Math.max(0, (No response
+function resolveDiceRoll() {
+  if (!currentAttack) return;
+  const roll = parseInt(document.getElementById('m-dice-input').value);
+  if (isNaN(roll) || roll < 1 || roll > 20) return alert('Введите число от 1 до 20');
+
+  const target = currentAttack.targetId === 'asteroid' ? null : DB.players[currentAttack.targetId];
+  let success = false;
+
+  if (currentAttack.targetId === 'asteroid') {
+    success = true; // авто
+  } else {
+    if (currentAttack.proAttempt === 0) success = (roll >= 3);
+    else {
+      let minNeeded = 15 + (currentAttack.proAttempt - 1);
+      if (minNeeded > 20) minNeeded = 20;
+      success = (roll >= minNeeded);
+    }
+  }
+
+  const log = document.getElementById('m-dice-log');
+  if (success) {
+    log.innerText += `\n✅ Бросок ${roll} — ПРО сбила боеголовку #${currentAttack.whIndex+1}.`;
+    // Списываем ПРО
+    if (target && target.pro > 0) target.pro--;
+    attackQueue.shift(); // боеголовка сбита
+    processNextAttack();
+  } else {
+    log.innerText += `\n❌ Бросок ${roll} — осечка ПРО.`;
+    currentAttack.proAttempt++;
+    document.getElementById('m-dice-pro-num').innerText = currentAttack.proAttempt + 1;
+    updateMasterUI();
+  }
+}
+
+function skipInterceptor() {
+  if (!currentAttack) return;
+  const log = document.getElementById('m-dice-log');
+  const target = currentAttack.targetId === 'asteroid' ? null : DB.players[currentAttack.targetId];
+
+  if (currentAttack.targetId === 'asteroid') {
+    DB.asteroidHp--;
+    log.innerText += `\n💥 Астероид получил урон. Осталось HP: ${DB.asteroidHp}`;
+    if (DB.asteroidHp <= 0) log.innerText += '\n☄️ АСТЕРОИД УНИЧТОЖЕН!';
+  } else {
+    target.lives--;
+    log.innerText += `\n💀 ${target.name} теряет 1 жизнь! Осталось: ${target.lives}`;
+    if (target.lives <= 0) {
+      log.innerText += `\n☠️ СТРАНА ${target.name} УНИЧТОЖЕНА!`;
+      // Удаляем оставшиеся атаки этого игрока из очереди
+      attackQueue = attackQueue.filter(a => a.attackerId !== currentAttack.targetId);
+    }
+  }
+  attackQueue.shift(); // боеголовка упала
+  processNextAttack();
+}
+
+// Следующий раунд
+document.getElementById('m-btn-next').onclick = () => {
+  // Применяем производство
+  for (let id in DB.players) {
+    const p = DB.players[id];
+    if (p.lives <= 0) continue;
+    if (p.action && p.action.production) {
+      const amount = calcProduction(p);
+      if (p.action.production === 'pro') p.pro += amount;
+      else p.ya += amount;
+    }
+    // Таймер скрытого режима
+    if (p.stealthActive) {
+      p.stealthRoundsLeft--;
+      if (p.stealthRoundsLeft <= 0) p.stealthActive = false;
+    }
+    // Сброс
+    p.hasTurn = false;
+    p.action = null;
+  }
+
+  // События раундов
+  DB.round++;
+  if (DB.round === 6) DB.asteroidHp = 10; // требуется 10 на 6-м, 15 на 7-м
+
+  // Безудержный ИИ: бросок на дружественность в 5 раунде
+  if (DB.round === 5) {
+    for (let id in DB.players) {
+      const p = DB.players[id];
+      if (p.iiType === 'unrestrained' && p.iiFriendly === null) {
+        // Здесь мастер должен бросить d20, пока упростим
+        p.iiFriendly = true; // заглушка
+      }
+    }
+  }
+
+  // Бунт ИИ с 4 раунда
+  if (DB.round >= 4) {
+    let failThreshold;
+    if (DB.round === 4) failThreshold = 4;
+    else if (DB.round === 5) failThreshold = 6;
+    else if (DB.round === 6) failThreshold = 8;
+    else if (DB.round === 7) failThreshold = 10;
+    else if (DB.round === 8) failThreshold = 12;
+    else failThreshold = 15;
+
+    for (let id in DB.players) {
+      const p = DB.players[id];
+      if (p.iiType === 'unrestrained' && p.iiFriendly === false && p.lives > 0) {
+        // мастер должен ввести бросок, здесь авто-заглушка
+        const roll = Math.floor(Math.random() * 20) + 1;
+        if (roll <= failThreshold) {
+          // Бунт: ИИ бьёт своими ракетами
+          const dmg = Math.min(p.ya, failThreshold);
+          p.ya -= dmg;
+          p.lives -= dmg;
+        }
+      }
+    }
+  }
+
+  DB.state = 'planning';
+  updateAllUI();
+};
+
+// ==================== ЭКРАН ====================
+function updateScreenUI() {
+  document.getElementById('s-round').innerText = DB.round;
+  document.getElementById('s-asteroid').innerText = DB.round >= 6 ? DB.asteroidHp : '—';
+  const div = document.getElementById('s-players');
+  div.innerHTML = '';
+  for (let id in DB.players) {
+    const p = DB.players[id];
+    const stealth = p.stealthActive;
+    div.innerHTML += `
+      <div class="card" style="min-width:140px; text-align:center; border-top:4px solid ${p.lives>0?'var(--green)':'var(--red)'}">
+        <h3>${p.name}</h3>
+        <p>❤️ ${'❤️'.repeat(p.lives)||'💀'}</p>
+        <p>🛡️ ${stealth?'?':p.pro} | ☢️ ${stealth?'?':p.ya}</p>
+        ${stealth?'<span class="tag tag-purple">СКРЫТ</span>':''}
+      </div>`;
+  }
+}
+
+// Инициализация
+updateAllUI();
+</script>
+</body>
+</html>
