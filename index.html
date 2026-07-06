@@ -17,6 +17,12 @@
                         linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
       background-size: 20px 20px;
     }
+    .toggle-btn-active {
+      background-color: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.6);
+      color: rgb(248, 113, 113);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-mono selection:bg-cyan-500 selection:text-white grid-bg">
@@ -157,7 +163,7 @@
       </div>
     </div>
 
-    <!-- 4. ИГРА НАЧАЛАСЬ: РАУНДЫ -->
+    <!-- 4. ИГРА НАЧАЛАСЬ: РАУНД 1 -->
     <div id="view-gameplay" class="hidden space-y-6">
       <div class="text-center space-y-2">
         <h2 id="gameplay-round-title" class="text-3xl font-black tracking-widest text-cyan-400 uppercase">Раунд 1. "Ещё не военный, но уже не мир"</h2>
@@ -167,16 +173,29 @@
 
       <!-- ИНТЕРФЕЙС ИГРОКА (СТРАНЫ) -->
       <div id="player-gameplay-interface" class="hidden bg-slate-900/80 p-6 rounded-lg border border-cyan-900/50 space-y-6 max-w-2xl mx-auto">
+        
+        <!-- Скрытое производство -->
+        <div id="hidden-production-panel" class="hidden p-4 bg-slate-950 border border-purple-900/50 rounded space-y-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-purple-400 uppercase tracking-widest">🕶️ Скрытое производство</span>
+          </div>
+          <p class="text-[10px] text-slate-400">Активация скрытого режима закроет информацию о вашей стране для остальных участников, но даст бонус <strong class="text-purple-400">+2 ракеты</strong> за раунд. Отменить режим до конца игры будет невозможно.</p>
+          <button id="activate-hidden-prod-btn" onclick="activateHiddenProduction()" class="w-full py-2 bg-purple-600/30 hover:bg-purple-500/50 border border-purple-500/50 text-purple-300 font-bold rounded text-xs transition-all uppercase tracking-widest">
+            Активировать скрытое производство
+          </button>
+        </div>
+        <div id="hidden-production-active-panel" class="hidden p-3 bg-purple-950/30 border border-purple-500/40 rounded text-center">
+          <span class="text-[10px] text-purple-300 font-bold uppercase tracking-widest">🕶️ Режим скрытого производства активен (+2 ракеты/раунд)</span>
+        </div>
+
         <!-- Склад вооружения -->
         <div>
-          <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3 border-b border-cyan-950 pb-2">Неприкосновенный запас («Федерация»):</h3>
+          <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-3 border-b border-cyan-950 pb-2">Неприкосновенный запас:</h3>
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-slate-950 p-4 border border-slate-800 rounded">
               <span class="text-xs text-slate-500 block uppercase">Ядерный арсенал</span>
-              <div class="flex items-baseline gap-2">
-                <span id="player-nuke-count" class="text-2xl font-black text-amber-500">1 ед.</span>
-                <span id="player-stolen-count" class="text-sm font-bold text-red-500 hidden"></span>
-              </div>
+              <span id="player-nuke-count" class="text-2xl font-black text-amber-500">1 ед.</span>
+              <span id="player-stash-nukes" class="hidden block text-xs text-red-500 font-bold mt-1"></span>
             </div>
             <div class="bg-slate-950 p-4 border border-slate-800 rounded">
               <span class="text-xs text-slate-500 block uppercase">Оборона (ПРО)</span>
@@ -185,30 +204,1039 @@
           </div>
         </div>
 
-        <!-- Скрытое производство -->
-        <div id="panel-hidden-production" class="p-4 bg-slate-950 border border-purple-900/30 rounded space-y-3">
-          <div class="flex justify-between items-center">
-            <h4 class="text-xs font-bold text-purple-400 uppercase tracking-widest">🔒 Скрытое производство</h4>
-            <span id="hidden-prod-status-badge" class="text-[10px] bg-slate-900 text-slate-500 px-2 py-0.5 rounded border border-slate-800 font-bold uppercase">НЕ АКТИВНО</span>
-          </div>
-          <p class="text-[10px] text-slate-400">Закрывает информацию о вашей стране для других фракций на экранах и дает бонус <strong class="text-purple-400">+2 ракеты</strong> к производству каждый раунд. Отмена невозможна!</p>
-          <button id="activate-hidden-prod-btn" onclick="activateHiddenProduction()" class="py-1.5 px-3 bg-purple-950 hover:bg-purple-900 text-purple-300 font-bold rounded text-[10px] uppercase tracking-wider transition-all border border-purple-800/30">
-            Активировать маскировку производства
-          </button>
-        </div>
-
         <!-- Производственные мощности -->
         <div id="production-control-panel" class="space-y-4">
           <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-widest border-b border-cyan-950 pb-2">Развертывание производственных линий:</h3>
           <div class="p-4 bg-slate-950 border border-slate-800 rounded space-y-2">
-            <p class="text-xs text-slate-300">Доступно к распределению в этом цикле: <strong id="production-limit-display" class="text-cyan-400">1</strong> ракет(ы).</p>
-            <p class="text-[10px] text-slate-500">Распределите очки производства между Ядерным сдерживанием и ПРО:</p>
+            <p class="text-xs text-slate-300">Доступно к производству в этом раунде: <strong id="production-available-count" class="text-cyan-400">1 ракета</strong> (Базовая мощность).</p>
+            <p class="text-[10px] text-slate-500">Укажите тип ракеты, которую ваши заводы начнут собирать в этом цикле:</p>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <!-- Планировщик Ядерных -->
-            <div class="p-4 bg-slate-950 border border-slate-800 rounded text-center space-y-2">
-              <span class="block text-xs uppercase font-bold text-slate-400">Ядерные ракеты</span>
-              <div class="flex justify-center items-center gap-3">
-                <button onclick="adjustLocalProd('nuke', -1)" class="w-8 h-8 bg-slate-900 border border-slate-700 rounded text-slate-300 hover:bg-slate-800 font-bold">-</button>
-                <span id="local-nuke-prod" class="text-xl font-boldNo response
+            <label class="cursor-pointer">
+              <input type="radio" name="prod-choice" value="nuke" class="sr-only peer">
+              <div class="p-4 bg-slate-950 border border-slate-800 peer-checked:border-amber-500 rounded text-center transition-all peer-checked:bg-amber-950/20">
+                <span class="block text-xs uppercase font-bold text-slate-400 peer-checked:text-amber-500">Ядерная ракета</span>
+                <span class="text-[10px] text-slate-500 block mt-1">+1 к ядерному потенциалу</span>
+              </div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="prod-choice" value="pro" class="sr-only peer">
+              <div class="p-4 bg-slate-950 border border-slate-800 peer-checked:border-cyan-400 rounded text-center transition-all peer-checked:bg-cyan-950/20">
+                <span class="block text-xs uppercase font-bold text-slate-400 peer-checked:text-cyan-400">Ракета ПРО</span>
+                <span class="text-[10px] text-slate-500 block mt-1">+1 к защитному куполу</span>
+              </div>
+            </label>
+          </div>
+
+          <button id="lock-production-btn" onclick="submitProductionChoice()" class="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black uppercase tracking-widest rounded transition-all text-xs">
+            Утвердить план оборонного производства
+          </button>
+        </div>
+
+        <div id="production-completed-panel" class="hidden p-4 bg-slate-950 border border-emerald-900/50 rounded text-center space-y-2">
+          <span class="text-xs text-emerald-400 font-bold uppercase tracking-widest">План производства утвержден</span>
+          <p class="text-[10px] text-slate-400">Ожидание подтверждения остальных стран колонизации и решения Куратора.</p>
+        </div>
+
+        <!-- ТАЙНИК -->
+        <div id="stash-panel" class="p-4 bg-slate-950 border border-slate-800 rounded space-y-3">
+          <p class="text-[11px] text-slate-300 italic leading-relaxed">Колонисты обнаружили на Корабле дополнительные запасы оружия. Оно очень повреждено, но его Очень много. Общим голосованием было решено оставить его на консервации в корабле.</p>
+          <button id="stash-toggle-btn" onclick="toggleStashClaim()" class="w-full py-2 bg-slate-900 border border-slate-700 hover:border-red-500 text-slate-400 hover:text-red-400 font-bold rounded text-[10px] transition-all uppercase tracking-widest">
+            скрытно забрать всё себе...
+          </button>
+          <p class="text-[9px] text-slate-600 italic text-center">никто не узнает кто это сделал, если только вы сами об этом не расскажете</p>
+        </div>
+
+        <!-- СООБЩЕНИЕ 2 РАУНДА -->
+        <div id="stash-round2-message" class="hidden p-3 bg-slate-950 border border-slate-800 rounded text-center">
+          <p id="stash-round2-text" class="text-[11px] text-slate-400 italic"></p>
+        </div>
+      </div>
+
+      <!-- ИНТЕРФЕЙС МАСТЕРА И ЭКРАНА -->
+      <div id="general-gameplay-interface" class="hidden bg-slate-900/80 p-6 rounded-lg border border-slate-800 space-y-6 max-w-2xl mx-auto">
+        <div>
+          <h3 id="general-list-title" class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">Развертывание на Земле-13</h3>
+          <div id="gameplay-players-list" class="space-y-3">
+            <!-- Игроки -->
+          </div>
+        </div>
+
+        <div id="gm-gameplay-controls" class="hidden pt-4 border-t border-slate-800/60 space-y-3">
+          <button id="resolve-round-btn" onclick="resolveRound()" disabled class="w-full py-4 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black uppercase tracking-widest rounded transition-all text-xs disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed">
+            Завершить раунд и запустить сборку (Ожидание планов всех стран)
+          </button>
+          <button onclick="closeRoomByGm()" class="w-full py-2 bg-red-950/40 hover:bg-red-900/40 text-red-400 font-bold rounded text-xs transition-all border border-red-900/50 uppercase tracking-widest">
+            Стереть сектор и завершить сессию
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. ИТОГИ РАУНДА -->
+    <div id="view-round-ended" class="hidden space-y-6">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-black tracking-widest text-emerald-400 uppercase">Раунд Завершен</h2>
+        <p class="text-xs text-slate-400 uppercase tracking-wider">Баланс вооружения на Земле-13 обновлен</p>
+      </div>
+
+      <div class="bg-slate-900/80 p-6 rounded-lg border border-slate-800 space-y-6 max-w-2xl mx-auto">
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-2">Новый расклад сил на планете:</h3>
+          <div id="ended-players-list" class="space-y-3">
+          </div>
+        </div>
+
+        <div id="player-ended-message" class="hidden p-4 bg-slate-950 border border-cyan-900/50 rounded text-center">
+          <p class="text-xs text-cyan-400 uppercase font-bold">Арсенал вашей страны успешно пополнен.</p>
+          <p class="text-[10px] text-slate-500 mt-1">Ожидайте, пока Куратор запустит следующий этап колонизации.</p>
+        </div>
+
+        <div id="gm-ended-controls" class="hidden pt-4 border-t border-slate-800/60 space-y-3">
+          <button onclick="resetToNewRound()" class="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black uppercase tracking-widest rounded transition-all text-xs">
+            Перейти к следующему циклу производства
+          </button>
+          <button onclick="closeRoomByGm()" class="w-full py-2 bg-red-950/40 hover:bg-red-900/40 text-red-400 font-bold rounded text-xs transition-all border border-red-900/50 uppercase tracking-widest">
+            Удалить комнату
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-6 border-t border-slate-900 text-center text-xs text-slate-500">
+    <div>&copy; 2026 Space Colony "Federation" Tactical Simulator. Все права защищены.</div>
+  </footer>
+
+  <!-- Модальное окно "Учётка" -->
+  <div id="credentials-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-slate-900 border border-amber-500/40 rounded-lg shadow-2xl max-w-md w-full p-6 space-y-4 neon-border-cyan">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-black uppercase tracking-widest text-amber-400">🔐 Данные учётной записи</h3>
+        <button onclick="closeCredentialsModal()" class="text-slate-500 hover:text-white text-xl leading-none">×</button>
+      </div>
+      
+      <div class="space-y-3">
+        <div class="bg-slate-950 border border-slate-800 rounded p-3">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Страна</span>
+            <button onclick="copySingle('name')" class="text-[9px] px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 rounded uppercase tracking-widest transition-all">Копировать</button>
+          </div>
+          <div id="modal-player-name" class="text-white font-mono text-sm break-all"></div>
+        </div>
+        
+        <div class="bg-slate-950 border border-slate-800 rounded p-3">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Пароль</span>
+            <button onclick="copySingle('password')" class="text-[9px] px-2 py-0.5 bg-cyan-500/20 hover:bg-cyan-500/40 text-cyan-300 rounded uppercase tracking-widest transition-all">Копировать</button>
+          </div>
+          <div id="modal-player-password" class="text-white font-mono text-sm break-all"></div>
+        </div>
+      </div>
+
+      <button onclick="copyCredentials()" class="w-full py-3 bg-amber-600 hover:bg-amber-500 text-slate-950 font-black uppercase tracking-widest rounded transition-all text-xs">
+        📋 Скопировать всё сразу
+      </button>
+    </div>
+  </div>
+
+  <!-- Firebase & Game Engine Script -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "millitoryworld2.firebaseapp.com",
+      databaseURL: "https://millitoryworld2-default-rtdb.firebaseio.com",
+      projectId: "millitoryworld2",
+      storageBucket: "millitoryworld2.appspot.com",
+      messagingSenderId: "359516110855"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let myRole = '';
+    let currentRoomId = '';
+    let myPlayerId = '';
+    let myPlayerName = '';
+    let activeRoomsListener = null;
+    let singleRoomListener = null;
+    let selectedPlayerCredentials = { name: '', password: '' };
+    let currentRound = 1;
+    let currentRoomData = null;
+
+    // Авто-вход
+    window.addEventListener('DOMContentLoaded', async () => {
+      const savedGmRoom = localStorage.getItem('cyber_gm_room_id');
+      if (savedGmRoom) {
+        const roomRef = ref(db, `rooms/${savedGmRoom}`);
+        try {
+          const snap = await get(roomRef);
+          if (snap.exists()) {
+            currentRoomId = savedGmRoom;
+            myRole = 'gm';
+            const room = snap.val();
+            if (room.status === 'playing' || room.status === 'round_ended') {
+              enterGameplay(room.players, room.status, room.round || 1);
+            } else {
+              enterLobby();
+            }
+            return;
+          } else {
+            localStorage.removeItem('cyber_gm_room_id');
+          }
+        } catch (e) {
+          localStorage.removeItem('cyber_gm_room_id');
+        }
+      }
+
+      const savedRoom = localStorage.getItem('cyber_room_id');
+      const savedPlayerId = localStorage.getItem('cyber_player_id');
+      const savedPlayerName = localStorage.getItem('cyber_player_name');
+
+      if (savedRoom && savedPlayerId && savedPlayerName) {
+        const playerRef = ref(db, `rooms/${savedRoom}/players/${savedPlayerId}`);
+        try {
+          const snap = await get(playerRef);
+          if (snap.exists()) {
+            currentRoomId = savedRoom;
+            myPlayerId = savedPlayerId;
+            myPlayerName = savedPlayerName;
+            myRole = 'player';
+            
+            const onlineRef = ref(db, `rooms/${currentRoomId}/players/${myPlayerId}/online`);
+            await set(onlineRef, true);
+            onDisconnect(onlineRef).set(false);
+
+            enterLobby();
+          } else {
+            localStorage.clear();
+          }
+        } catch (e) {
+          localStorage.clear();
+        }
+      }
+    });
+
+    // Соединение
+    const connectedRef = ref(db, ".info/connected");
+    onValue(connectedRef, (snap) => {
+      const badge = document.getElementById("connection-badge");
+      if (snap.val() === true) {
+        badge.innerText = "Связь: Онлайн";
+        badge.className = "px-3 py-1 rounded border text-[10px] uppercase font-bold tracking-widest bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
+      } else {
+        badge.innerText = "Связь: Офлайн";
+        badge.className = "px-3 py-1 rounded border text-[10px] uppercase font-bold tracking-widest bg-red-500/10 text-red-400 border-red-500/30";
+      }
+    });
+
+    function switchToView(viewId) {
+      document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+    window.switchToView = switchToView;
+
+    window.selectRole = function(role) {
+      myRole = role;
+      if (role === 'gm') {
+        switchToView('view-gm-create');
+      } else if (role === 'player') {
+        startRoomsScanning('view-player-rooms');
+      } else if (role === 'screen') {
+        startRoomsScanning('view-screen-rooms');
+      }
+    };
+
+    window.goBack = function() {
+      if (activeRoomsListener) activeRoomsListener();
+      if (singleRoomListener) singleRoomListener();
+      currentRoomId = '';
+      myPlayerId = '';
+      switchToView('view-role-selection');
+    };
+
+    window.clearSessionAndLeave = function() {
+      if (myRole === 'gm') {
+        localStorage.removeItem('cyber_gm_room_id');
+        goBack();
+      } else if (myPlayerId && currentRoomId) {
+        const onlineRef = ref(db, `rooms/${currentRoomId}/players/${myPlayerId}/online`);
+        set(onlineRef, false).then(() => {
+          localStorage.clear();
+          goBack();
+        });
+      } else {
+        localStorage.clear();
+        goBack();
+      }
+    };
+
+    window.closeRoomByGm = function() {
+      if (confirm("Вы действительно хотите завершить миссию и удалить сектор? Все колонисты потеряют связь.")) {
+        if (singleRoomListener) singleRoomListener();
+        const roomRef = ref(db, `rooms/${currentRoomId}`);
+        remove(roomRef).then(() => {
+          localStorage.clear();
+          goBack();
+        });
+      }
+    };
+
+    function startRoomsScanning(targetView) {
+      switchToView(targetView);
+      const roomsRef = ref(db, "rooms");
+      
+      activeRoomsListener = onValue(roomsRef, (snapshot) => {
+        const rooms = snapshot.val() || {};
+        const isPlayer = targetView === 'view-player-rooms';
+        const container = document.getElementById(isPlayer ? 'rooms-list-container' : 'screen-rooms-list-container');
+        container.innerHTML = '';
+
+        let activeCount = 0;
+        for (let roomId in rooms) {
+          const room = rooms[roomId];
+          if (room.status === 'waiting') {
+            activeCount++;
+            const playersCount = room.players ? Object.keys(room.players).length : 0;
+            const btn = document.createElement('button');
+            btn.className = "w-full p-4 bg-slate-900/40 hover:bg-slate-800 border border-slate-800 hover:border-cyan-400 rounded flex justify-between items-center transition-all text-xs uppercase tracking-wider";
+            btn.innerHTML = `
+              <span class="font-bold text-cyan-400">Сектор #${roomId}</span>
+              <span class="text-slate-400">Колоний: ${playersCount}/4</span>
+            `;
+            btn.onclick = () => {
+              currentRoomId = roomId;
+              if (isPlayer) {
+                document.getElementById('joining-room-title').innerText = `#${roomId}`;
+                switchToView('view-player-join');
+              } else {
+                enterLobby();
+              }
+            };
+            container.appendChild(btn);
+          }
+        }
+
+        if (activeCount === 0) {
+          container.innerHTML = `
+            <div class="text-center py-6 text-slate-500 text-xs uppercase tracking-widest">
+              Все частоты свободны. Ожидайте Куратора.
+            </div>
+          `;
+        }
+      });
+    }
+
+    function startGmRoomsScanning() {
+      switchToView('view-gm-rooms');
+      const roomsRef = ref(db, "rooms");
+      
+      activeRoomsListener = onValue(roomsRef, (snapshot) => {
+        const rooms = snapshot.val() || {};
+        const container = document.getElementById('gm-rooms-list-container');
+        container.innerHTML = '';
+
+        let activeCount = 0;
+        for (let roomId in rooms) {
+          activeCount++;
+          const room = rooms[roomId];
+          const playersCount = room.players ? Object.keys(room.players).length : 0;
+          const btn = document.createElement('button');
+          btn.className = "w-full p-4 bg-slate-900/40 hover:bg-slate-800 border border-slate-800 hover:border-amber-500 rounded flex justify-between items-center transition-all text-xs uppercase tracking-wider";
+          btn.innerHTML = `
+            <div class="text-left">
+              <span class="font-bold text-amber-500 block">Сектор #${roomId}</span>
+              <span class="text-[10px] text-slate-500">${room.status === 'playing' || room.status === 'round_ended' ? '🟢 Миссия активна' : '🟡 Сбор фракций'}</span>
+            </div>
+            <span class="text-slate-400">Колоний: ${playersCount}/4</span>
+          `;
+          btn.onclick = () => {
+            currentRoomId = roomId;
+            myRole = 'gm';
+            localStorage.setItem('cyber_gm_room_id', currentRoomId);
+            if (activeRoomsListener) activeRoomsListener();
+            
+            if (room.status === 'playing' || room.status === 'round_ended') {
+              enterGameplay(room.players, room.status, room.round || 1);
+            } else {
+              enterLobby();
+            }
+          };
+          container.appendChild(btn);
+        }
+
+        if (activeCount === 0) {
+          container.innerHTML = `
+            <div class="text-center py-6 text-slate-500 text-xs">
+              Нет активных секторов. Вернитесь назад и создайте новый.
+            </div>
+          `;
+        }
+      });
+    }
+
+    window.createRoom = function() {
+      const roomIdInput = document.getElementById('gm-room-id').value.trim();
+      const passwordInput = document.getElementById('gm-password').value.trim();
+      const errDiv = document.getElementById('gm-create-error');
+      
+      errDiv.classList.add('hidden');
+
+      if (passwordInput !== '67890') {
+        errDiv.innerText = "ШИФР КУРАТОРА НЕ ПРИНЯТ!";
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      if (roomIdInput === '') {
+        startGmRoomsScanning();
+        return;
+      }
+
+      if (!/^\d{4}$/.test(roomIdInput)) {
+        errDiv.innerText = "КОД СЕКТОРА ДОЛЖЕН СОСТОЯТЬ ИЗ 4 ЦИФР!";
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      const roomRef = ref(db, `rooms/${roomIdInput}`);
+      
+      get(roomRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          currentRoomId = roomIdInput;
+          myRole = 'gm';
+          localStorage.setItem('cyber_gm_room_id', currentRoomId);
+          
+          const room = snapshot.val();
+          if (room.status === 'playing' || room.status === 'round_ended') {
+            enterGameplay(room.players, room.status, room.round || 1);
+          } else {
+            enterLobby();
+          }
+        } else {
+          set(roomRef, {
+            status: "waiting",
+            players: {},
+            round: 1,
+            stash: { claimed_by: null, claimed_by_name: null, claimed_this_round: [] }
+          }).then(() => {
+            currentRoomId = roomIdInput;
+            myRole = 'gm';
+            localStorage.setItem('cyber_gm_room_id', currentRoomId);
+            enterLobby();
+          });
+        }
+      });
+    };
+
+    window.joinOrCreatePlayer = async function() {
+      const nameInput = document.getElementById('player-name-input').value.trim();
+      const passInput = document.getElementById('player-password-input').value.trim();
+      const errDiv = document.getElementById('player-join-error');
+      errDiv.classList.add('hidden');
+
+      if (!nameInput || !passInput) {
+        errDiv.innerText = "Укажите имя и пароль фракции!";
+        errDiv.classList.remove('hidden');
+        return;
+      }
+
+      const playersRef = ref(db, `rooms/${currentRoomId}/players`);
+      
+      try {
+        const snapshot = await get(playersRef);
+        const players = snapshot.val() || {};
+        let existingId = null;
+        let matched = false;
+
+        for (let id in players) {
+          if (players[id].name.toLowerCase() === nameInput.toLowerCase()) {
+            existingId = id;
+            if (players[id].password === passInput) {
+              matched = true;
+            }
+            break;
+          }
+        }
+
+        if (existingId) {
+          if (matched) {
+            myPlayerId = existingId;
+            myPlayerName = players[existingId].name;
+            setupPresenceAndEnter();
+          } else {
+            errDiv.innerText = "Имя страны занято! Введите правильный шифр фракции.";
+            errDiv.classList.remove('hidden');
+          }
+        } else {
+          myPlayerId = "p_" + Math.random().toString(36).substr(2, 9);
+          myPlayerName = nameInput;
+          
+          await set(ref(db, `rooms/${currentRoomId}/players/${myPlayerId}`), {
+            name: nameInput,
+            password: passInput,
+            online: true,
+            nukes: 1,
+            pro: 1,
+            stash_nukes: 0,
+            production_done: false,
+            production_choice: "",
+            ready: true,
+            hidden_production: false,
+            wants_stash: false
+          });
+          setupPresenceAndEnter();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    async function setupPresenceAndEnter() {
+      localStorage.setItem('cyber_room_id', currentRoomId);
+      localStorage.setItem('cyber_player_id', myPlayerId);
+      localStorage.setItem('cyber_player_name', myPlayerName);
+
+      const onlineRef = ref(db, `rooms/${currentRoomId}/players/${myPlayerId}/online`);
+      await set(onlineRef, true);
+      onDisconnect(onlineRef).set(false);
+
+      enterLobby();
+    }
+
+    function getOnlineBadgeAndStyle(p) {
+      const isOnline = p.online;
+      if (isOnline) {
+        return {
+          badgeHtml: `<span class="flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 uppercase tracking-widest">
+            <span class="w-1 h-1 rounded-full bg-emerald-400"></span> СЕТЬ
+          </span>`,
+          cardBorderClass: "border-slate-800"
+        };
+      } else {
+        return {
+          badgeHtml: `<span class="flex items-center gap-1.5 text-[10px] text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20 animate-pulse shadow-[0_0_10px_rgba(244,63,94,0.3)] uppercase tracking-widest">
+            <span class="w-1 h-1 rounded-full bg-rose-500 animate-ping"></span> СБОЙ СВЯЗИ
+          </span>`,
+          cardBorderClass: "border-rose-500/40 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.15)] bg-slate-950/80"
+        };
+      }
+    }
+
+    function enterLobby() {
+      if (activeRoomsListener) activeRoomsListener();
+
+      document.getElementById('lobby-room-id').innerText = currentRoomId;
+      
+      const badge = document.getElementById('lobby-role-badge');
+      if (myRole === 'gm') {
+        badge.innerText = "👑 ТЕРМИНАЛ КУРАТОРА МИССИИ";
+        document.getElementById('gm-controls').classList.remove('hidden');
+        document.getElementById('lobby-disconnect-btn').classList.add('hidden');
+      } else if (myRole === 'player') {
+        badge.innerText = `🎮 СВЯЗЬ ФРАКЦИИ: ${myPlayerName}`;
+        document.getElementById('gm-controls').classList.add('hidden');
+        document.getElementById('lobby-disconnect-btn').classList.remove('hidden');
+      } else {
+        badge.innerText = "📺 ГЛАВНЫЙ ТАКТИЧЕСКИЙ ЭКРАН СЕКТОРА";
+        document.getElementById('gm-controls').classList.add('hidden');
+        document.getElementById('lobby-disconnect-btn').classList.add('hidden');
+      }
+
+      switchToView('view-lobby');
+
+      const roomRef = ref(db, `rooms/${currentRoomId}`);
+      singleRoomListener = onValue(roomRef, (snapshot) => {
+        const room = snapshot.val();
+        
+        if (!room) {
+          alert("Данный сектор был стерт или закрыт Куратором!");
+          localStorage.clear();
+          goBack();
+          return;
+        }
+
+        if (room.status === 'playing' || room.status === 'round_ended') {
+          enterGameplay(room.players, room.status, room.round || 1);
+          return;
+        }
+
+        const players = room.players || {};
+        const pList = document.getElementById('lobby-players-list');
+        pList.innerHTML = '';
+
+        const playerIds = Object.keys(players);
+        playerIds.forEach(id => {
+          const p = players[id];
+          const state = getOnlineBadgeAndStyle(p);
+          const div = document.createElement('div');
+          div.className = `p-3 bg-slate-950 border rounded flex justify-between items-center transition-all duration-300 ${state.cardBorderClass}`;
+          
+          let actionBtnHtml = '';
+          if (myRole === 'gm') {
+            actionBtnHtml = `<button onclick="showCredentials('${p.name}', '${p.password}')" class="px-2 py-1 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-slate-950 rounded text-[10px] font-bold uppercase tracking-widest transition-all">Учётка</button>`;
+          }
+
+          div.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="font-extrabold text-sm ${p.online ? 'text-cyan-400' : 'text-slate-500'}">${p.name}</span>
+              ${state.badgeHtml}
+            </div>
+            ${actionBtnHtml}
+          `;
+          pList.appendChild(div);
+        });
+
+        if (playerIds.length === 0) {
+          pList.innerHTML = `<div class="text-slate-500 text-xs italic text-center py-3">Ожидание сигналов других фракций...</div>`;
+        }
+
+        if (myRole === 'gm') {
+          const startBtn = document.getElementById('start-game-btn');
+          const count = playerIds.length;
+          if (count >= 3 && count <= 4) {
+            startBtn.disabled = false;
+            startBtn.innerText = "ЗАПУСТИТЬ РАУНД 1";
+          } else {
+            startBtn.disabled = true;
+            startBtn.innerText = `БЛОКИРОВКА ЗАПУСКА (Колоний: ${count}/4)`;
+          }
+        }
+      });
+    }
+
+    window.startGame = function() {
+      const roomRef = ref(db, `rooms/${currentRoomId}`);
+      update(roomRef, { status: "playing", round: 1 });
+    };
+
+    function enterGameplay(playersObj, status, round) {
+      if (singleRoomListener) singleRoomListener();
+      
+      currentRound = round || 1;
+      document.getElementById('gameplay-round-title').innerText = `Раунд ${currentRound}. "${currentRound === 1 ? 'Ещё не военный, но уже не мир' : 'Нарастание мощи'}"`;
+
+      const badge = document.getElementById('gameplay-role-badge');
+      if (myRole === 'gm') {
+        badge.innerText = "👑 Контроль тактического развертывания";
+      } else if (myRole === 'player') {
+        badge.innerText = `🎮 Управление: ${myPlayerName}`;
+      } else {
+        badge.innerText = "📺 Общий тактический обзор планеты";
+      }
+
+      if (status === 'round_ended') {
+        renderRoundEndedScreen(playersObj);
+        return;
+      }
+
+      switchToView('view-gameplay');
+
+      if (myRole === 'player') {
+        document.getElementById('gameplay-disconnect-btn').classList.remove('hidden');
+      } else {
+        document.getElementById('gameplay-disconnect-btn').classList.add('hidden');
+      }
+
+      if (myRole === 'player') {
+        document.getElementById('player-gameplay-interface').classList.remove('hidden');
+        document.getElementById('general-gameplay-interface').classList.add('hidden');
+      } else {
+        document.getElementById('player-gameplay-interface').classList.add('hidden');
+        document.getElementById('general-gameplay-interface').classList.remove('hidden');
+        if (myRole === 'gm') {
+          document.getElementById('gm-gameplay-controls').classList.remove('hidden');
+        } else {
+          document.getElementById('gm-gameplay-controls').classList.add('hidden');
+        }
+      }
+
+      const roomRef = ref(db, `rooms/${currentRoomId}`);
+      singleRoomListener = onValue(roomRef, (snapshot) => {
+        const room = snapshot.val();
+        if (!room) {
+          alert("Этот сектор был стерт или закрыт Куратором!");
+          localStorage.clear();
+          goBack();
+          return;
+        }
+        currentRoomData = room;
+
+        if (room.status === 'round_ended') {
+          renderRoundEndedScreen(room.players);
+          return;
+        }
+
+        const players = room.players || {};
+        const stash = room.stash || { claimed_by: null, claimed_this_round: [] };
+
+        if (myRole === 'player' && players[myPlayerId]) {
+          const me = players[myPlayerId];
+          document.getElementById('player-nuke-count').innerText = `${me.nukes || 1} ед.`;
+          document.getElementById('player-pro-count').innerText = `${me.pro || 1} ед.`;
+
+          const stashSpan = document.getElementById('player-stash-nukes');
+          if (me.stash_nukes && me.stash_nukes > 0) {
+            stashSpan.classList.remove('hidden');
+            stashSpan.innerText = `+${me.stash_nukes} из тайника`;
+          } else {
+            stashSpan.classList.add('hidden');
+          }
+
+          // Базовое производство + бонус скрытого
+          const baseProd = 1;
+          const bonusProd = me.hidden_production ? 2 : 0;
+          const totalProd = baseProd + bonusProd;
+          document.getElementById('production-available-count').innerText = `${totalProd} ракет(ы)`;
+
+          if (me.production_done) {
+            document.getElementById('production-control-panel').classList.add('hidden');
+            document.getElementById('production-completed-panel').classList.remove('hidden');
+          } else {
+            document.getElementById('production-control-panel').classList.remove('hidden');
+            document.getElementById('production-completed-panel').classList.add('hidden');
+          }
+
+          // Скрытое производство
+          const hiddenPanel = document.getElementById('hidden-production-panel');
+          const hiddenActivePanel = document.getElementById('hidden-production-active-panel');
+          if (me.hidden_production) {
+            hiddenPanel.classList.add('hidden');
+            hiddenActivePanel.classList.remove('hidden');
+          } else {
+            hiddenPanel.classList.remove('hidden');
+            hiddenActivePanel.classList.add('hidden');
+          }
+
+          // Тайник: панель или сообщение раунда 2+
+          const stashPanel = document.getElementById('stash-panel');
+          const stashMsg = document.getElementById('stash-round2-message');
+          const stashText = document.getElementById('stash-round2-text');
+          const stashBtn = document.getElementById('stash-toggle-btn');
+
+          if (currentRound === 1) {
+            stashPanel.classList.remove('hidden');
+            stashMsg.classList.add('hidden');
+            // Обновление состояния кнопки
+            if (me.wants_stash) {
+              stashBtn.innerText = "ЗАБИРАЮ";
+              stashBtn.classList.add('toggle-btn-active');
+            } else {
+              stashBtn.innerText = "скрытно забрать всё себе...";
+              stashBtn.classList.remove('toggle-btn-active');
+            }
+          } else {
+            stashPanel.classList.add('hidden');
+            stashMsg.classList.remove('hidden');
+            if (stash.claimed_by === myPlayerId) {
+              stashText.innerText = "Оружия много... но, судя по его состоянию, осталось ему года 2... а дальше...";
+              stashText.className = "text-[11px] text-amber-400 italic";
+            } else if (me.wants_stash_round1 || (stash.claimed_this_round && stash.claimed_this_round.includes(myPlayerId))) {
+              stashText.innerText = "Кто-то вас уже опередил...";
+              stashText.className = "text-[11px] text-red-400 italic";
+            } else {
+              stashText.innerText = "Тайник пуст...";
+              stashText.className = "text-[11px] text-slate-500 italic";
+            }
+          }
+        }
+
+        // Общий обзор для Мастера и Экрана
+        if (myRole !== 'player') {
+          const pListContainer = document.getElementById('gameplay-players-list');
+          pListContainer.innerHTML = '';
+          let allReady = true;
+
+          for (let id in players) {
+            const p = players[id];
+            const state = getOnlineBadgeAndStyle(p);
+            
+            if (!p.production_done) allReady = false;
+
+            const div = document.createElement('div');
+            div.className = `p-4 bg-slate-950 border rounded flex justify-between items-center transition-all duration-300 ${state.cardBorderClass}`;
+            
+            // Скрытое производство: если игрок активировал, скрываем данные от не-мастеров
+            const isHidden = p.hidden_production && myRole !== 'gm';
+
+            let prodStatusHtml = p.production_done 
+              ? `<span class="text-[10px] text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded bg-emerald-500/10 tracking-widest font-bold">ПЛАН УТВЕРЖДЕН</span>` 
+              : `<span class="text-[10px] text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded bg-amber-500/5 tracking-widest font-bold">ОЖИДАНИЕ ПЛАНА</span>`;
+
+            let actionBtnHtml = '';
+            if (myRole === 'gm') {
+              actionBtnHtml = `<button onclick="showCredentials('${p.name}', '${p.password}')" class="px-2 py-1 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-slate-950 rounded text-[10px] font-bold uppercase tracking-widest transition-all">Учётка</button>`;
+            }
+
+            let contentHtml = '';
+            if (isHidden) {
+              contentHtml = `
+                <div class="space-y-2">
+                  <div class="flex items-center gap-3">
+                    <span class="font-bold text-sm text-purple-400">🕶️ [СКРЫТАЯ ФРАКЦИЯ]</span>
+                    <span class="text-[9px] text-purple-400 border border-purple-500/40 px-1.5 py-0.5 rounded uppercase tracking-widest bg-purple-500/10">засекречено</span>
+                  </div>
+                </div>
+              `;
+            } else {
+              let nukesDisplay = `${p.nukes || 1}`;
+              if (p.stash_nukes && p.stash_nukes > 0) {
+                nukesDisplay += ` <span class="text-red-500">(+${p.stash_nukes})</span>`;
+              }
+              contentHtml = `
+                <div class="space-y-2">
+                  <div class="flex items-center gap-3">
+                    <span class="font-bold text-sm ${p.online ? 'text-cyan-400' : 'text-slate-500'}">${p.name}</span>
+                    ${state.badgeHtml}
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-slate-500">Ядерные: ${nukesDisplay}</span>
+                    <span class="text-[10px] text-slate-500">ПРО: ${p.pro || 1}</span>
+                  </div>
+                </div>
+              `;
+            }
+
+            div.innerHTML = `
+              ${contentHtml}
+              <div class="flex items-center gap-3">
+                ${prodStatusHtml}
+                ${actionBtnHtml}
+              </div>
+            `;
+            pListContainer.appendChild(div);
+          }
+
+          if (myRole === 'gm') {
+            const resolveBtn = document.getElementById('resolve-round-btn');
+            resolveBtn.disabled = !allReady;
+          }
+        }
+      });
+    }
+
+    window.submitProductionChoice = function() {
+      const radios = document.getElementsByName('prod-choice');
+      let choice = "";
+      for (let r of radios) {
+        if (r.checked) { choice = r.value; break; }
+      }
+
+      if (!choice) {
+        alert("Выберите тип ракеты для сборки на оборонных заводах!");
+        return;
+      }
+
+      const updates = {};
+      updates[`rooms/${currentRoomId}/players/${myPlayerId}/production_choice`] = choice;
+      updates[`rooms/${currentRoomId}/players/${myPlayerId}/production_done`] = true;
+
+      update(ref(db), updates);
+    };
+
+    window.toggleStashClaim = function() {
+      if (!currentRoomData || !currentRoomData.players || !currentRoomData.players[myPlayerId]) return;
+      const me = currentRoomData.players[myPlayerId];
+      const newWants = !me.wants_stash;
+      
+      const updates = {};
+      updates[`rooms/${currentRoomId}/players/${myPlayerId}/wants_stash`] = newWants;
+      
+      // Обновляем список претендентов в stash.claimed_this_round
+      const stash = currentRoomData.stash || { claimed_by: null, claimed_this_round: [] };
+      let claimedList = stash.claimed_this_round || [];
+      if (newWants) {
+        if (!claimedList.includes(myPlayerId)) {
+          claimedList = [...claimedList, myPlayerId];
+          updates[`rooms/${currentRoomId}/stash/claimed_this_round`] = claimedList;
+        }
+      }
+      update(ref(db), updates);
+    };
+
+    window.activateHiddenProduction = function() {
+      if (!confirm("Активировать скрытое производство? Этот режим нельзя будет отменить до конца игры!")) return;
+      update(ref(db, `rooms/${currentRoomId}/players/${myPlayerId}`), {
+        hidden_production: true
+      });
+    };
+
+    const STASH_NUKES_AMOUNT = 5; // Количество ракет в тайнике
+
+    window.resolveRound = async function() {
+      if (confirm("Вы действительно хотите завершить Раунд " + currentRound + "? Все выбранные планы производства будут выполнены.")) {
+        const roomRef = ref(db, `rooms/${currentRoomId}`);
+        const snapshot = await get(roomRef);
+        if (snapshot.exists()) {
+          const room = snapshot.val();
+          const players = room.players || {};
+          const stash = room.stash || { claimed_by: null, claimed_this_round: [] };
+          const updates = {};
+
+          // Определяем, кто первый забрал тайник
+          let stashWinnerId = null;
+          let stashWinnerName = null;
+          if (currentRound === 1) {
+            const claimants = (stash.claimed_this_round || []).filter(id => players[id] && players[id].wants_stash);
+            if (claimants.length > 0) {
+              stashWinnerId = claimants[0];
+              stashWinnerName = players[stashWinnerId].name;
+            }
+          }
+
+          for (let id in players) {
+            const p = players[id];
+            let nukes = p.nukes || 1;
+            let pro = p.pro || 1;
+            let stashNukes = p.stash_nukes || 0;
+
+            const baseProd = 1;
+            const bonusProd = p.hidden_production ? 2 : 0;
+            const totalProd = baseProd + bonusProd;
+
+            if (p.production_choice === 'nuke') {
+              nukes += totalProd;
+            } else if (p.production_choice === 'pro') {
+              pro += totalProd;
+            }
+
+            // Начисление тайника победителю
+            if (currentRound === 1 && id === stashWinnerId) {
+              stashNukes += STASH_NUKES_AMOUNT;
+            }
+
+            updates[`rooms/${currentRoomId}/players/${id}/nukes`] = nukes;
+            updates[`rooms/${currentRoomId}/players/${id}/pro`] = pro;
+            updates[`rooms/${currentRoomId}/players/${id}/stash_nukes`] = stashNukes;
+            updates[`rooms/${currentRoomId}/players/${id}/last_produced`] = p.production_choice;
+            updates[`rooms/${currentRoomId}/players/${id}/production_choice`] = "";
+            updates[`rooms/${currentRoomId}/players/${id}/production_done`] = false;
+            // Сохраняем флаг для показа сообщения во 2 раунде
+            if (currentRound === 1) {
+              updates[`rooms/${currentRoomId}/players/${id}/wants_stash_round1`] = p.wants_stash || false;
+              updates[`rooms/${currentRoomId}/players/${id}/wants_stash`] = false;
+            }
+          }
+
+          if (currentRound === 1 && stashWinnerId) {
+            updates[`rooms/${currentRoomId}/stash/claimed_by`] = stashWinnerId;
+            updates[`rooms/${currentRoomId}/stash/claimed_by_name`] = stashWinnerName;
+          }
+
+          updates[`rooms/${currentRoomId}/status`] = "round_ended";
+          updates[`rooms/${currentRoomId}/round`] = currentRound;
+          await update(ref(db), updates);
+        }
+      }
+    };
+
+    function renderRoundEndedScreen(players) {
+      switchToView('view-round-ended');
+
+      const pList = document.getElementById('ended-players-list');
+      pList.innerHTML = '';
+
+      for (let id in players) {
+        const p = players[id];
+        const state = getOnlineBadgeAndStyle(p);
+        const div = document.createElement('div');
+        div.className = `p-4 bg-slate-950 border rounded space-y-2 transition-all duration-300 ${state.cardBorderClass}`;
+        
+        let choiceText = p.last_produced === 'nuke' 
+          ? `<span class="text-amber-500 font-bold uppercase">Ядерная ракета</span>` 
+          : `<span class="text-cyan-400 font-bold uppercase">Ракета ПРО</span>`;
+
+        let nukesHtml = `<strong class="text-amber-500">${p.nukes || 1}</strong>`;
+        if (p.stash_nukes && p.stash_nukes > 0) {
+          nukesHtml += ` <span class="text-red-500 text-[10px]">(+${p.stash_nukes} из тайника)</span>`;
+        }
+
+        div.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm ${p.online ? 'text-cyan-400' : 'text-slate-500'}">${p.name}</span>
+            ${state.badgeHtml}
+          </div>
+          <div class="text-[10px] text-slate-400">
+            Производство в раунде: ${choiceText}
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-900 text-xs">
+            <div class="text-slate-500">ЯДЕРНЫЕ РАКЕТЫ: ${nukesHtml}</div>
+            <div class="text-slate-500">ЗАЩИТНЫЕ ПРО: <strong class="text-cyan-400">${p.pro || 1}</strong></div>
+          </div>
+        `;
+        pList.appendChild(div);
+      }
+
+      if (myRole === 'player') {
+        document.getElementById('player-ended-message').classList.remove('hidden');
+        document.getElementById('gm-ended-controls').classList.add('hidden');
+      } else if (myRole === 'gm') {
+        document.getElementById('player-ended-message').classList.add('hidden');
+        document.getElementById('gm-ended-controls').classList.remove('hidden');
+      } else {
+        document.getElementById('player-ended-message').classList.add('hidden');
+        document.getElementById('gm-ended-controls').classList.add('hidden');
+      }
+    }
+
+    window.resetToNewRound = function() {
+      if (confirm("Перезапустить оборонный цикл? Перейти к следующему раунду?")) {
+        const roomRef = ref(db, `rooms/${currentRoomId}`);
+        update(roomRef, { 
+          status: "playing",
+          round: currentRound + 1
+        });
+      }
+    };
+
+    // Модальное окно "Учетка"
+    window.showCredentials = function(name, password) {
+      selectedPlayerCredentials = { name, password };
+      document.getElementById('modal-player-name').innerText = name;
+      document.getElementById('modal-player-password').innerText = password;
+      document.getElementById('credentials-modal').classList.remove('hidden');
+    };
+
+    window.closeCredentialsModal = function() {
+      document.getElementById('credentials-modal').classList.add('hidden');
+    };
+
+    window.copyCredentials = function() {
+      const text = `Фракция: ${selectedPlayerCredentials.name}\nПароль: ${selectedPlayerCredentials.password}`;
+      navigator.clipboard.writeText(text).then(() => {
+        flashCopySuccess();
+      }).catch(err => {
+        alert("Скопируйте вручную.");
+      });
+    };
+
+    window.copySingle = function(field) {
+      const text = field === 'name' ? selectedPlayerCredentials.name : selectedPlayerCredentials.password;
+      navigator.clipboard.writeText(text).then(() => {
+        flashCopySuccess();
+      }).catch(err => {
+        alert("Не удалось скопировать.");
+      });
+    };
+
+    function flashCopySuccess() {
+      const btn = document.querySelector('#credentials-modal button.bg-amber-600');
+      if (btn) {
+        const original = btn.innerText;
+        btn.innerText = "✓ СКОПИРОВАНО";
+        btn.classList.add('bg-emerald-500');
+        setTimeout(() => {
+          btn.innerText = original;
+          btn.classList.remove('bg-emerald-500');
+        }, 1500);
+      }
+    }
+  </script>
+</body>
+</html>
